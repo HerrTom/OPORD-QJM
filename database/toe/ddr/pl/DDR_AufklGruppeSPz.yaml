@@ -1,0 +1,43 @@
+name: Aufkl.-Gruppe (SPz) # Name of the TO&E to be used for display
+nation: DDR
+sidc: '10061000121205010000' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEEG003001 # ID code that can be referenced by other formations
+subunits: null # List of ID codes that this TO&E uses as a subunit
+personnel:
+    - Commander:
+        rank: E-06 Sergeant
+        equipment:
+            - EG010005
+    - Aufklarer:
+        rank: E-01 Private
+        equipment:
+            - EG010002
+    - Aufklarer:
+        rank: E-01 Private
+        equipment:
+            - EG010002
+            - EG020002
+    - Aufklarer:
+        rank: E-01 Private
+        equipment:
+            - EG010003
+    - Aufklarer:
+        rank: E-01 Private
+        equipment:
+            - EG010002
+            - EG020002
+    - Aufklarer:
+        rank: E-01 Private
+        equipment:
+            - EG010002
+            - EG020002
+vehicles: # list of equipment with crews. This can be null. Example below:
+    - EG030001:
+        - Gunner:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010007

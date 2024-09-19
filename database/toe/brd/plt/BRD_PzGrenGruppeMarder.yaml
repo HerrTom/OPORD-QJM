@@ -1,0 +1,46 @@
+name: Panzergrenadier Gruppe (Marder) # Name of the TO&E to be used for display
+nation: DDR
+sidc: '10061000121211020000' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEWG000001 # ID code that can be referenced by other formations
+subunits: null # List of ID codes that this TO&E uses as a subunit
+personnel: # List of personnel roles and their ranks.
+    - Assistant Squad Leader:
+        rank: E-03 Corporal
+        equipment:
+            - WG010001
+    - Marksman:
+        rank: E-01 Private
+        equipment:
+            - WG010001
+    - Machinegunner:
+        rank: E-01 Private
+        equipment:
+            - WG010003
+    - AT Soldier:
+        rank: E-01 Private
+        equipment:
+            - WG010001
+            - WG020001
+vehicles:  # list of equipment with crews
+    - WG030001:
+        - Squad Leader:
+            rank: E-06 Sergeant
+            equipment:
+                - WG010001
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - WG010002
+        - Gunner:
+            rank: E-01 Private
+            equipment:
+                - WG010002
+    - WG020002:
+        - MILAN Operator:
+            rank: E-01 Private
+            equipment:
+                - WG010001
+        - MILAN Assistant Operator:
+            rank: E-01 Private
+            equipment:
+                - WG010001

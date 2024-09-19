@@ -1,0 +1,10 @@
+name: Howitzer Battery (Towed, 122mm) # Name of the TO&E to be used for display
+nation: DDR
+sidc: '10061000151303000000' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEEG000203 # ID code that can be referenced by other formations
+subunits: # List of ID codes that this TO&E uses as a subunit
+  - TOEEG000202
+  - TOEEG000201
+  - TOEEG000201
+personnel: null
+vehicles: null # list of equipment with crews. This can be null. Example below:

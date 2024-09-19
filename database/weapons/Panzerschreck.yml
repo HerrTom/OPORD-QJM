@@ -1,0 +1,17 @@
+name: Panzerschreck
+category: antitank  # can be small arm, machine gun, heavy weapon, antitank, armour, artillery, close air support, or antiair
+crew: 1 # crew is only counted if a weapon is used directly
+calibre: 88
+rof_type: calibre # one of six options: crewed; handheld; aircraft; calibre; mortar;
+weap_type: gun # gun, mortar, missile, bomb
+barrels: 1
+ROF: 1
+PTS: 0 # if 0, use calibre calculation
+RIE: 1 # usually 1 except for small arms - 0.8 seems normal for most rifles
+eff_range: 150
+muzzle_vel: 110
+accuracy: 0.8
+reliability: 0.9
+guidance: none
+sp_arty: none
+arty_charges: 0

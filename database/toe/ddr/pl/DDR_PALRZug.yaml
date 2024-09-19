@@ -1,0 +1,47 @@
+name: PALR Zug (SPW) # Name of the TO&E to be used for display
+nation: DDR
+sidc: '10061000141204000000' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEEG003101 # ID code that can be referenced by other formations
+subunits: null # List of ID codes that this TO&E uses as a subunit
+personnel:
+    - Commander:
+        rank: E-06 Sergeant
+        equipment:
+            - EG010005
+vehicles: # list of equipment with crews. This can be null. Example below:
+    - EG030002:
+        - Gunner:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010007
+    - EG020008:
+        - Gunner:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Assistant Gunner:
+            rank: E-01 Private
+            equipment:
+                - EG010007
+    - EG020008:
+        - Gunner:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Assistant Gunner:
+            rank: E-01 Private
+            equipment:
+                - EG010007
+    - EG020008:
+        - Gunner:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Assistant Gunner:
+            rank: E-01 Private
+            equipment:
+                - EG010007

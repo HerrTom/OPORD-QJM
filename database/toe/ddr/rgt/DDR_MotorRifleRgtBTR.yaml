@@ -1,0 +1,15 @@
+name: Motor Rifle Regiment (BTR) # Name of the TO&E to be used for display
+nation: DDR
+sidc: '10061000171211020051' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEEG020002 # ID code that can be referenced by other formations
+subunits: # List of ID codes that this TO&E uses as a subunit
+    - TOEEG010007
+    - TOEEG010007
+    - TOEEG010007
+    - TOEEG001007
+    - TOEEG003103
+    - TOEEG003203
+    - TOEEG010205
+    - TOEEG003006
+personnel: null # List of personnel roles and their ranks.
+vehicles: null # list of equipment with crews. This can be null. Example below:

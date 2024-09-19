@@ -1,0 +1,47 @@
+name: Motor Rifle Squad (BTR) # Name of the TO&E to be used for display
+nation: DDR
+sidc: '10061000141211020051' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEEG010001 # ID code that can be referenced by other formations
+subunits: null # List of ID codes that this TO&E uses as a subunit
+personnel: # List of personnel roles and their ranks.
+    - Squad Leader:
+        rank: E-06 Sergeant
+        equipment:
+            - EG010001
+    - Deputy Squad Leader:
+        rank: E-01 Private
+        equipment:
+            - EG010001
+            - EG020002
+    - Machine Gunner:
+        rank: E-01 Private
+        equipment:
+            - EG010004
+    - Machine Gunner:
+        rank: E-01 Private
+        equipment:
+            - EG010004
+    - RPG Gunner:
+        rank: E-01 Private
+        equipment:
+            - EG020001
+            - EG010007
+    - Assistant RPG Gunner:
+        rank: E-01 Private
+        equipment:
+            - EG010001
+    - Rifleman:
+        rank: E-01 Private
+        equipment:
+            - EG010001
+            - EG020002
+vehicles:  # list of equipment with crews
+    - EG030002:
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010007
+        - Gunner:
+            rank: E-01 Private
+            equipment:
+                - EG010004

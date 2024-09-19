@@ -1,0 +1,16 @@
+name: BMP-2
+category: heavy weapon  # can be small arm, machine gun, heavy weapon, antitank, armour, artillery, close air support, or antiair
+vehicle_type: ifv # tank, armoured car, truck, artillery, arv, ifv, apc, cas, fighter, bomber, helicopter
+crew: 2
+weapons:
+  - 2A42
+  - 9M113
+  - PKT
+speed: 65 # road speed, kph
+op_range: 600 # operational range, km
+weight: 14.3
+fce: 0.7 # M-60 tank has 0.9
+ammo: 500 # main gun
+mobility: tracked # can be tracked, wheeled, halftrack
+amphibious: amphibious # can be no, amphibious, or snorkel
+ceiling: 0 # for aircraft, in meters

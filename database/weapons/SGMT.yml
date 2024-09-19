@@ -1,0 +1,17 @@
+name: SGMT
+category: machine gun
+crew: 1 # crew is only counted if a weapon is used directly
+calibre: 7.62
+rof_type: crewed
+weap_type: gun
+barrels: 1
+ROF: 500
+PTS: 1
+RIE: 0.8
+eff_range: 1100
+muzzle_vel: 800
+accuracy: 0.8
+reliability: 0.9
+guidance: none
+sp_arty: none
+arty_charges: 0

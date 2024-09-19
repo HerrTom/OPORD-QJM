@@ -1,0 +1,11 @@
+name: PALR Battery # Name of the TO&E to be used for display
+nation: DDR
+sidc: '10061000151204000000' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEEG003103 # ID code that can be referenced by other formations
+subunits: # List of ID codes that this TO&E uses as a subunit
+  - TOEEG003102
+  - TOEEG003101
+  - TOEEG003101
+  - TOEEG003101
+personnel: null
+vehicles: null # list of equipment with crews. This can be null. Example below:

@@ -1,0 +1,59 @@
+name: Fla-SFL Zug # Name of the TO&E to be used for display
+nation: DDR
+sidc: '10061000141301020000' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEEG003202 # ID code that can be referenced by other formations
+subunits: null # List of ID codes that this TO&E uses as a subunit
+personnel:
+vehicles: # list of equipment with crews. This can be null. Example below:
+    - EG050003:
+        - Commander:
+            rank: O-01 Lieutenant
+            equipment:
+                - EG010005
+        - Gunner:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010007
+    - EG050003:
+        - Commander:
+            rank: E-06 Sergeant
+            equipment:
+                - EG010005
+        - Gunner:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010007
+    - EG050003:
+        - Commander:
+            rank: E-03 Corporal
+            equipment:
+                - EG010005
+        - Gunner:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010007
+    - EG050003:
+        - Commander:
+            rank: E-03 Corporal
+            equipment:
+                - EG010005
+        - Gunner:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010007

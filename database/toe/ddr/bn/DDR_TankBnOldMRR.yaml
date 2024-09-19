@@ -1,0 +1,13 @@
+name: Tank Battalion (Old) # Name of the TO&E to be used for display
+nation: DDR
+sidc: '10061000161205000000' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEEG001007 # ID code that can be referenced by other formations
+subunits: # List of ID codes that this TO&E uses as a subunit
+    - TOEEG001008
+    - TOEEG001003
+    - TOEEG001003
+    - TOEEG001003
+    - TOEEG000012
+    - TOEEG000013
+personnel: null # List of personnel roles and their ranks.
+vehicles: null # list of equipment with crews. This can be null. Example below:

@@ -1,0 +1,17 @@
+name: 3.7cm Flak 36
+category: antiair  # can be small arm, machine gun, heavy weapon, antitank, armour, artillery, close air support, or antiair
+crew: 6 # crew is only counted if a weapon is used directly
+calibre: 37
+rof_type: crewed # one of six options: crewed; handheld; aircraft; calibre; mortar;
+weap_type: gun # gun, mortar, missile, bomb
+barrels: 1
+ROF: 160
+PTS: 0 # if 0, use calibre calculation
+RIE: 1 # usually 1 except for small arms - 0.8 seems normal for most rifles
+eff_range: 4200
+muzzle_vel: 840
+accuracy: 0.7
+reliability: 0.9
+guidance: none
+sp_arty: none
+arty_charges: 0

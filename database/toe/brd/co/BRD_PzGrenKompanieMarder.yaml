@@ -1,0 +1,12 @@
+name: Panzergrenadier Kompanie (Marder) # Name of the TO&E to be used for display
+nation: BRD
+sidc: '10061000151211020000' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEWG000005 # ID code that can be referenced by other formations
+subunits: # List of ID codes that this TO&E uses as a subunit
+    - TOEWG000004
+    - TOEWG000003
+    - TOEWG000003
+    - TOEWG000003
+    - TOEWG000001
+personnel: null
+vehicles: null # list of equipment with crews. This can be null. Example below:

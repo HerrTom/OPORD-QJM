@@ -1,0 +1,17 @@
+name: SVD
+category: small arms # can be small arm, machine gun, heavy weapon, antitank, armour, artillery, close air support, or antiair
+crew: 1 # crew is only counted if a weapon is used directly
+calibre: 7.62
+rof_type: handheld
+weap_type: gun
+barrels: 1
+ROF: 60
+PTS: 1
+RIE: 0.9
+eff_range: 800
+muzzle_vel: 830
+accuracy: 0.9
+reliability: 0.9
+guidance: none
+sp_arty: none
+arty_charges: 0

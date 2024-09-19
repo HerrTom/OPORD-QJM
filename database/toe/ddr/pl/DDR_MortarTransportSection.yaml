@@ -1,0 +1,47 @@
+name: Transport Section # Name of the TO&E to be used for display
+nation: Russia
+sidc: '10061000131634000000' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEEG000009 # ID code that can be referenced by other formations
+subunits: null # List of ID codes that this TO&E uses as a subunit
+personnel: null # List of personnel roles and their ranks.
+vehicles:
+    - EG040002:
+        - Section Commander:
+            rank: E-06 Sergeant
+            equipment:
+                - EG010001
+    - EG040005:
+        - Truck Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+    - EG040005:
+        - Truck Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+    - EG040005:
+        - Truck Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+    - EG040005:
+        - Truck Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+    - EG040005:
+        - Truck Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+    - EG040005:
+        - Truck Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+    - EG040005:
+        - Truck Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010001

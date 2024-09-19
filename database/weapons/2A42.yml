@@ -1,0 +1,17 @@
+name: 2A42
+category: heavy weapon  # can be small arm, machine gun, heavy weapon, antitank, armour, artillery, close air support, or antiair
+crew: 3 # crew is only counted if a weapon is used directly
+calibre: 30
+rof_type: crewed
+weap_type: gun
+barrels: 1
+ROF: 300
+PTS: 0
+RIE: 1
+eff_range: 2000
+muzzle_vel: 960
+accuracy: 0.8
+reliability: 0.9
+guidance: none
+sp_arty: none
+arty_charges: 0

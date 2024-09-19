@@ -1,0 +1,37 @@
+name: 433/4GT
+faction: Russia
+sidc: '10061000171211020000'
+equipment:
+  1V13M: 3
+  1V14M: 3
+  1V15M: 1
+  1V16M: 1
+  2B14: 18
+  2S1: 18
+  2S12: 8
+  2S6M: 6
+  9A34M3: 6
+  9K38 Igla: 15
+  AGS-30: 9
+  AK-74M: 783
+  BMP-2: 102
+  BRDM-2: 13
+  BREM-1: 4
+  BTR-80: 5
+  Light Truck: 4
+  MT-LBM: 4
+  MTU: 1
+  PKP: 49
+  PRP-4M: 1
+  Pistol: 12
+  R-149BMPg: 5
+  RPG-22: 175
+  RPG-7V: 85
+  RPK-74M: 81
+  SVD: 27
+  T-80BV: 20
+  T-80BVM: 20
+  T-80BVK: 1
+  TMM: 4
+  Truck: 184
+  Truck (POL): 37

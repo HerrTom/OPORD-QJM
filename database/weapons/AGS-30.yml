@@ -1,0 +1,17 @@
+name: AGS-30
+category: machine gun # can be small arm, machine gun, heavy weapon, antitank, armour, artillery, close air support, or antiair
+crew: 2 # crew is only counted if a weapon is used directly
+calibre: 30
+rof_type: crewed
+weap_type: gun
+barrels: 1
+ROF: 400
+PTS: 0
+RIE: 1.0
+eff_range: 2100
+muzzle_vel: 185
+accuracy: 0.8
+reliability: 0.9
+guidance: none
+sp_arty: none
+arty_charges: 0

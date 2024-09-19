@@ -1,0 +1,33 @@
+name: Tank Company HQ (Old) # Name of the TO&E to be used for display
+nation: DDR
+sidc: '10061000141800009800' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEEG001002 # ID code that can be referenced by other formations
+subunits: null # List of ID codes that this TO&E uses as a subunit
+personnel: # List of personnel roles and their ranks.
+    - Company Sergeant Major:
+        rank: E-09 Sergeant Major
+        equipment:
+            - EG010001
+vehicles:  # list of equipment with crews. This can be null. Example below:
+    - EG030004:
+        - Company Commander:
+            rank: O-02 Captain
+            equipment:
+                - EG010007
+        - Gunner:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Loader:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+    - EG040001:
+        - Company Clerk:
+            rank: E-01 Private
+            equipment:
+                - EG010001

@@ -1,0 +1,86 @@
+name: Howitzer Battery HQ (SP) # Name of the TO&E to be used for display
+nation: DDR
+sidc: '10061000141800009800' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEEG000213 # ID code that can be referenced by other formations
+subunits: null # List of ID codes that this TO&E uses as a subunit
+personnel: # List of personnel roles and their ranks.
+    - Deputy Commander for Personnel:
+        rank: O-01 Lieutenant
+        equipment:
+            - EG010001
+            - EG010007
+    - Senior Battery Technician:
+        rank: E-07 Senior Sergeant
+        equipment:
+            - EG010001
+    - Company Sergeant Major:
+        rank: E-09 Warrant Officer
+        equipment:
+            - EG010001
+    - Management Squad Commander:
+        rank: E-06 Sergeant
+        equipment:
+            - EG010001
+    - Rifleman:
+        rank: E-01 Private
+        equipment:
+            - EG010001
+    - Rifleman:
+        rank: E-01 Private
+        equipment:
+            - EG010001
+    - Senior Technician:
+        rank: E-04 Lance Corporal
+        equipment:
+            - EG010001
+    - Rifleman:
+        rank: E-01 Private
+        equipment:
+            - EG010001
+vehicles: # list of equipment with crews.
+    - EG040007:
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+        - Battery Commander:
+            rank: O-02 Captain
+            equipment:
+                - EG010001
+                - EG010007
+        - Radiotelephone Operator:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+        - Radiotelephone Operator:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+    - EG040008:
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+        - Forward Observer:
+            rank: E-04 Lance Corporal
+            equipment:
+                - EG010001
+        - Radiotelephone Operator:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+    - EG040005:
+        - Truck Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+    - EG040005:
+        - Truck Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+    - EG040001:
+        - Truck Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010001

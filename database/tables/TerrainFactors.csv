@@ -1,0 +1,15 @@
+Terrain,Mobility (r_m),Defense Position (r_u),Infantry Weapons (r_n),Artillery (r_wg),Air (r_wy),Tanks (r_wt),Casualty (r_c)
+Rugged - Heavily Wooded,0.4,1.5,0.6,0.7,0.8,0.2,0.3
+Rugged - Mixed,0.5,1.55,0.7,0.8,0.9,0.4,0.4
+Rugged - Bare,0.6,1.45,0.8,0.9,0.95,0.5,0.5
+Rolling- Heavily Wooded,0.6,1.35,0.8,0.8,0.9,0.6,0.6
+Rolling - Mixed,0.8,1.3,0.9,0.9,0.95,0.8,0.7
+Rolling - Bare,1,1.2,1,1,1,1,0.8
+Flat - Heavily Wooded,0.7,1.1,0.8,0.9,0.9,0.7,0.7
+Flat - Mixed,0.9,1.2,0.9,1,0.95,0.9,0.8
+"Flat - Bare, hard",1.05,1.05,1,1,1,1,1
+Flat Desert,0.95,1.18,1,1,1,1,0.9
+Rolling Dunes,0.3,1.4,1,1,1,0.6,0.5
+Swamp - Jungled,0.3,1.4,0.6,0.8,0.8,0.2,0.3
+Swamp - mixed or open,0.4,1.3,0.8,0.9,0.95,0.3,0.4
+Urban,0.7,1.4,0.8,0.9,0.9,0.7,0.5

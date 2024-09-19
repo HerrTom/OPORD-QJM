@@ -1,0 +1,49 @@
+# Line Item Numbers are 8 character codes that identify a particular category of equipment
+# Format:
+# LINE_ITEM_NUMBER:
+#   name: Name of the line item number
+#   items: # list of items that fulfill that role. Items at the top are higher priority.
+#     - Item 1
+#     - Item 2
+# Line Item Numbers are 8 character codes that identify a particular category of equipment
+# WG00XXXX BLOCK FOR MISC EQUIPMENT
+# WG01XXXX BLOCK FOR SMALL ARMS
+WG010001:
+  name: Rifle
+  items:
+    - G3A4
+    - G3A3
+WG010002:
+  name: Submachine Gun
+  items:
+    - MP5
+WG010003:
+  name: Machine Gun, Medium
+  items:
+    - MG3
+WG010004:
+  name: Rifle, Marksman
+  items:
+    - G3SG1
+WG010005:
+  name: Pistol
+  items:
+    - P38
+# WG02XXXX BLOCK FOR HEAVY WEAPONS
+WG020001:
+  name: Antitank Rocket Launcher
+  items:
+    - PzF44
+WG020002:
+  name: Antitank Rocket Launcher
+  items:
+    - MILAN
+# WG03XXXX BLOCK FOR COMBAT VEHICLES
+WG030001:
+  name: Infantry Fighting Vehicle
+  items:
+    - SPz Marder 1A2
+    - SPz Marder 1A1
+    - SPz Marder 1
+# WG04XXXX BLOCK FOR UTILITY VEHICLES
+# WG05XXXX BLOCK FOR ANTIAIRCRAFT WEAPONS

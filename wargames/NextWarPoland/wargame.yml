@@ -1,0 +1,11 @@
+name: Next War Poland
+factions:
+  Russia: '#7a6a3c'
+  Belarus: '#706f6c'
+  Poland: '#ffffff'
+  USA: '#9dad4b'
+  USMC: '#4f6b30'
+
+# QJM Factors
+dispersion_factor: 4000
+dispersion_depth: 67

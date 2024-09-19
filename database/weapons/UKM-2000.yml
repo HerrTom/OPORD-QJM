@@ -1,0 +1,17 @@
+name: UKM-2000
+category: machine gun # can be small arm, machine gun, heavy weapon, antitank, armour, artillery, close air support, or antiair
+crew: 1 # crew is only counted if a weapon is used directly
+calibre: 7.62
+rof_type: handheld
+weap_type: gun
+barrels: 1
+ROF: 750
+PTS: 1
+RIE: 0.8
+eff_range: 1500
+muzzle_vel: 840
+accuracy: 0.8
+reliability: 0.9
+guidance: none
+sp_arty: none
+arty_charges: 0

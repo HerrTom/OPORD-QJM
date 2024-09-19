@@ -1,0 +1,59 @@
+name: Motor Rifle Company HQ (BTR) # Name of the TO&E to be used for display
+nation: DDR
+sidc: '10061000141800009851' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEEG010004 # ID code that can be referenced by other formations
+subunits: null # List of ID codes that this TO&E uses as a subunit
+personnel: # List of personnel roles and their ranks.
+    - Company Commander:
+        rank: O-02 Captain
+        equipment:
+            - EG010007
+    - Deputy Company Commander for Political Work:
+        rank: O-01 Lieutenant
+        equipment:
+            - EG010007
+    - Deputy Company Commander for Technical Equipment:
+        rank: E-06 Sergeant
+        equipment:
+            - EG010001
+    - Company Sergeant Major:
+        rank: E-09 Sergeant Major
+        equipment:
+            - EG010001
+    - Company Troop Leader:
+        rank: E-06 Sergeant
+        equipment:
+            - EG010001
+    - Radio Operator:
+        rank: E-01 Private
+        equipment:
+            - EG010001
+    - Medic:
+        rank: E-01 Private
+        equipment:
+            - EG010007
+    - MANPADS Operator:
+        rank: E-01 Private
+        equipment:
+            - EG010001
+            - EG050001
+    - MANPADS Operator:
+        rank: E-01 Private
+        equipment:
+            - EG010001
+            - EG050001
+vehicles:  # list of equipment with crews. This can be null. Example below:
+    - EG030002:
+        - Driver:
+            rank: E-03 Corporal
+            equipment:
+                - EG010007
+        - Gunner:
+            rank: E-03 Corporal
+            equipment:
+                - EG010002
+    - EG040001:
+        - Company Clerk:
+            rank: E-01 Private
+            equipment:
+                - EG010001

@@ -1,0 +1,54 @@
+name: Motor Rifle Battalion HQ (BTR) # Name of the TO&E to be used for display
+nation: DDR
+sidc: '10061000151800009800' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEEG010006 # ID code that can be referenced by other formations
+subunits: null # List of ID codes that this TO&E uses as a subunit
+personnel: # List of personnel roles and their ranks.
+    - Battalion Commander:
+        rank: O-04 Lieutenant Colonel
+        equipment:
+            - EG010007
+    - Chief of Staff:
+        rank: O-03 Major
+        equipment:
+            - EG010007
+    - Deputy Company Commander for Political Work:
+        rank: O-03 Major
+        equipment:
+            - EG010007
+    - Battalion Clerk:
+        rank: E-01 Private
+        equipment:
+            - EG010001
+    - Radio Operator:
+        rank: E-01 Private
+        equipment:
+            - EG010001
+    - Radio Operator:
+        rank: E-01 Private
+        equipment:
+            - EG010001
+    - Rifleman:
+        rank: E-01 Private
+        equipment:
+            - EG010001
+vehicles:  # list of equipment with crews. This can be null. Example below:
+    - EG030002:
+        - Driver:
+            rank: E-03 Corporal
+            equipment:
+                - EG010007
+        - Gunner:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+    - EG040002:
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+    - EG040001:
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010001

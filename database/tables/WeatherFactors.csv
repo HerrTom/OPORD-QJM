@@ -1,0 +1,13 @@
+Weather,Mobility (hm),Attack (Hua),Artillery (hwg),Air (hwy),Tanks (hwt),Casualties (h_c)
+Dry - Sunshine- Extreme Heat,0.9,1,1,1,0.9,0.8
+Dry - Sunshine - Temperate,1,1,1,1,1,1
+Dry - Sunshine - Extreme Cold,0.9,0.9,0.9,1,0.9,0.7
+Dry - Overcast - Extreme Heat,1,1,1,0.7,1,0.9
+Dry - Overcast - Temperate,1,1,1,0.7,1,1
+Dry - Overcast - Extreme Cold,0.9,0.9,0.9,0.7,0.8,0.6
+Wet - Light - Extreme Heat,0.9,0.9,0.9,0.5,0.7,0.7
+Wet - Light - Temperate,0.8,0.9,1,0.5,0.7,0.7
+Wet - Light - Extreme Cold,0.8,0.9,1,0.5,0.7,0.4
+Wet - Heavy - Extreme Heat,0.5,0.6,0.9,0.2,0.6,0.5
+Wet - Heavy - Temperate,0.6,0.7,0.9,0.2,0.5,0.5
+Wet - Heavy - Extreme Cold,0.5,0.6,0.8,0.2,0.5,0.3

@@ -1,0 +1,62 @@
+name: Mortar Platoon # Name of the TO&E to be used for display
+nation: DDR
+sidc: '10061000141308000000' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEEG000008 # ID code that can be referenced by other formations
+subunits: null # List of ID codes that this TO&E uses as a subunit
+personnel: # List of personnel roles and their ranks.
+    - Platoon Commander:
+        rank: O-01 Lieutenant
+        equipment:
+            - EG010001
+            - EG010007
+vehicles:
+    - EG020003:
+        - Mortar Commander:
+            rank: E-06 Sergeant
+            equipment:
+                - EG010001
+        - Mortar Gunlayer:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+        - Mortar Loader:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+        - Ammunition Handler:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+        - Ammunition Handler:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+        - Ammunition Handler:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+    - EG020003:
+        - 2nd Mortar Commander:
+            rank: E-06 Sergeant
+            equipment:
+                - EG010001
+        - 2nd Mortar Gunlayer:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+        - 2nd Mortar Loader:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+        - Ammunition Handler:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+        - Ammunition Handler:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+        - Ammunition Handler:
+            rank: E-01 Private
+            equipment:
+                - EG010001

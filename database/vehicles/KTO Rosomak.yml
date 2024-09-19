@@ -1,0 +1,16 @@
+name: KTO Rosomak
+category: heavy weapon  # can be small arm, machine gun, heavy weapon, antitank, armour, artillery, close air support, or antiair
+vehicle_type: apc # tank, armoured car, truck, artillery, arv, ifv, apc, cas, fighter, bomber, helicopter
+crew: 2
+weapons:
+  - 30mm Mk44 Bushmaster II
+  - NSVT
+  - UKM-2000
+speed: 100 # road speed, kph
+op_range: 800 # operational range, km
+weight: 13.6
+fce: 0.9 # M-60 tank has 0.9
+ammo: 500 # main gun
+mobility: wheeled # can be tracked, wheeled, halftrack
+amphibious: amphibious # can be no, amphibious, or snorkel
+ceiling: 0 # for aircraft, in meters

@@ -1,0 +1,46 @@
+name: Transport Section # Name of the TO&E to be used for display
+nation: DDR
+sidc: '10061000131634000000' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEEG000050 # ID code that can be referenced by other formations
+subunits: null # List of ID codes that this TO&E uses as a subunit
+personnel: # List of personnel roles and their ranks.
+    - Transport Section Commander:
+        rank: E-06 Sergeant
+        equipment:
+            - EG010001
+vehicles:  # list of equipment with crews. This can be null. Example below:
+    - EG040002:
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+    - EG040001:
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+    - EG040001:
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+    - EG040001:
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+    - EG040001:
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+    - EG040005:
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+    - EG040005:
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010001

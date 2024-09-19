@@ -1,0 +1,65 @@
+name: Signal Platoon # Name of the TO&E to be used for display
+nation: DDR
+sidc: '10061000141110000000' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEEG000014 # ID code that can be referenced by other formations
+subunits: null # List of ID codes that this TO&E uses as a subunit
+personnel: # List of personnel roles and their ranks.
+    - Platoon Commander:
+        rank: O-01 Lieutenant
+        equipment:
+            - EG010001
+            - EG010007
+    - Deputy Platoon Commander:
+        rank: E-07 Senior Sergeant
+        equipment:
+            - EG010001
+    - Technician:
+        rank: E-04 Lance Corporal
+        equipment:
+            - EG010001
+    - Rifleman:
+        rank: E-01 Private
+        equipment:
+            - EG010001
+    - Squad Leader:
+        rank: E-06 Sergeant
+        equipment:
+            - EG010001
+    - Rifleman:
+        rank: E-01 Private
+        equipment:
+            - EG010001
+    - Rifleman:
+        rank: E-01 Private
+        equipment:
+            - EG010001
+        
+vehicles:
+    - EG040002:
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010001
+    - EG030002:
+        - Driver-Mechanic:
+            rank: E-01 Private
+            equipment:
+                - EG010007
+        - Gunner-Operator:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+    - EG040003:
+        - Driver-Mechanic:
+            rank: E-01 Private
+            equipment:
+                - EG010007
+        - Radiotelephone Operator:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+    - EG040001:
+        - Truck Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010001

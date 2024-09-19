@@ -1,0 +1,36 @@
+name: 13TR/4GT
+faction: Russia
+sidc: '10061000171205000000'
+equipment:
+  1V13M: 3
+  1V14M: 3
+  1V15M: 1
+  1V16M: 1
+  2B14: 6
+  2S1: 18
+  2S12: 8
+  2S6M: 6
+  9A34M3: 6
+  9K38 Igla: 15
+  AGS-30: 3
+  AK-74M: 369
+  BMP-2: 34
+  BRDM-2: 13
+  BREM-1: 4
+  BTR-80: 5
+  Light Truck: 4
+  MT-LBM: 4
+  MTU: 3
+  PKP: 25
+  PRP-4M: 1
+  Pistol: 21
+  R-149BMPg: 4
+  RPG-22: 67
+  RPG-7V: 31
+  RPK-74M: 27
+  SVD: 9
+  T-80U: 90
+  T-80UK: 4
+  TMM: 4
+  Truck: 168
+  Truck (POL): 37

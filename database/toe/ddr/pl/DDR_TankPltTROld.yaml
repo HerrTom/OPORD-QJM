@@ -1,0 +1,59 @@
+name: Tank Platoon (Old, TR) # Name of the TO&E to be used for display
+nation: DDR
+sidc: '10061000141205000000' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEEG002001 # ID code that can be referenced by other formations
+subunits: null # List of ID codes that this TO&E uses as a subunit
+personnel: null # List of personnel roles and their ranks.
+vehicles: # list of equipment with crews. This can be null. Example below:
+    - EG030004:
+        - Platoon Commander:
+            rank: O-01 Lieutenant
+            equipment:
+                - EG010002
+                - EG010007
+        - Gunner:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Loader:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+    - EG030004:
+        - Tank Commander:
+            rank: E-06 Sergeant
+            equipment:
+                - EG010002
+        - Gunner:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Loader:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+    - EG030004:
+        - Deputy Platoon Commander:
+            rank: E-07 Senior Sergeant
+            equipment:
+                - EG010002
+        - Gunner:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Loader:
+            rank: E-01 Private
+            equipment:
+                - EG010002

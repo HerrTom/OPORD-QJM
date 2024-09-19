@@ -1,0 +1,161 @@
+# Line Item Numbers are 8 character codes that identify a particular category of equipment
+# Format:
+# LINE_ITEM_NUMBER:
+#   name: Name of the line item number
+#   items: # list of items that fulfill that role. Items at the top are higher priority.
+#     - Item 1
+#     - Item 2
+# Line Item Numbers are 8 character codes that identify a particular category of equipment
+# EG00XXXX BLOCK FOR MISC EQUIPMENT
+# EG01XXXX BLOCK FOR SMALL ARMS
+EG010001:
+  name: Rifle
+  items:
+    - MPi-AKS-74N
+    - MPi-KM
+EG010002:
+  name: Rifle, Carbine
+  items:
+    - MPi-AKS-74N
+    - MPi-KMS
+EG010003:
+  name: Machine Gun, Light
+  items:
+    - RPK
+EG010004:
+  name: Machine Gun, Medium
+  items:
+    - PKM
+EG010005:
+  name: Rifle, GL
+  items:
+    - MPi-KM GP-25
+EG010006:
+  name: Rifle, Marksman
+  items:
+    - SVD
+EG010007:
+  name: Pistol
+  items:
+    - Makarov PM
+EG010008:
+  name: Rifle, Folding
+  items:
+    - MPi-AKS-74N
+    - MPi-KMS
+
+# EG02XXXX BLOCK FOR HEAVY WEAPONS
+EG020001:
+  name: Antitank Rocket Launcher
+  items:
+    - RPG-7D
+EG020002:
+  name: Light Antitank Weapon
+  items:
+    - RPG-18
+EG020003:
+  name: Mortar, Medium
+  items:
+    - 82-BM-37
+EG020004:
+  name: Mortar, Heavy
+  items:
+    - 2S12 Sani
+EG020005:
+  name: Howitzer, Towed, 122mm
+  items:
+    - D-30
+EG020006:
+  name: Howitzer, Self-Propelled, 122mm
+  items:
+    - 2S1
+EG020007:
+  name: Howitzer, Self-Propelled, 152mm
+  items:
+    - 2S3
+EG020008:
+  name: Anti-Tank Guided Missile
+  items:
+    - 9M14M
+
+
+# EG03XXXX BLOCK FOR COMBAT VEHICLES
+EG030001:
+  name: Infantry Fighting Vehicle
+  items:
+    - BMP-2 # 24 (!) available in 1990
+    - BMP-1P # 151 purchased from Czechoslovakia
+    - BMP-1 # 1,133 available in 1990
+EG030002:
+  name: Armoured Personnel Carrier
+  items:
+    - BTR-70
+    - BTR-60
+EG030003:
+  name: Autoloading Tank
+  items:
+    - T-72M
+EG030004:
+  name: Manual Loading Tank
+  items:
+    - T-55A
+    - T-54AMZ
+EG030005:
+  name: Infantry Fighting Vehicle, Command
+  items:
+    - BMP-1K
+EG030006:
+  name: Reconnaissance Vehicle, Wheeled
+  items:
+    - SPW 40-P2
+
+# EG04XXXX BLOCK FOR UTILITY VEHICLES
+EG040001:
+  name: Truck
+  items:
+    - Ural-375
+EG040002:
+  name: Staff Car
+  items:
+    - UAZ-469
+EG040003:
+  name: Signals Vehicle, APC
+  items:
+    - R-149BMRg
+EG040004:
+  name: Support Vehicle, Crane
+  items:
+    - MtP-LB
+EG040005:
+  name: Light Truck
+  items:
+    - LO-2000
+EG040006:
+  name: Truck (POL)
+  items:
+    - Ural-375 POL
+EG040007:
+  name: Battery Command Vehicle
+  items:
+    - MT-LB (BO) SFL
+EG040008:
+  name: Forward Observation Vehicle
+  items:
+    - SPW-60PB(ABS)
+
+# EG05XXXX BLOCK FOR ANTIAIRCRAFT WEAPONS
+EG050001:
+  name: MANPADS
+  items:
+    - 9K32 Strela-2
+EG050002:
+  name: SP AAA
+  items:
+    - ZSU-23-4V1
+    - ZSU-23-4V
+    - ZSU-23-4
+EG050003:
+  name: SP SAM (IR)
+  items:
+    - 9K35 Strela-10M
+    - 9K35 Strela-10

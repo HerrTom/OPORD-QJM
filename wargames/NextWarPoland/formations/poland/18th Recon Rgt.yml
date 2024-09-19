@@ -1,0 +1,14 @@
+name: 18 Recon
+faction: Poland
+sidc: '10031000171205010000'
+equipment:
+  BRDM-2: 36
+  BWR-1D: 12
+  Light Truck: 92
+  RPG-7V: 90
+  SVD: 12
+  Spike-LR: 12
+  Truck: 49
+  Truck (POL): 21
+  UKM-2000: 87
+  wz.96: 672
