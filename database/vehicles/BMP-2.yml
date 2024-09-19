@@ -1,5 +1,5 @@
 name: BMP-2
-category: heavy weapon  # can be small arm, machine gun, heavy weapon, antitank, armour, artillery, close air support, or antiair
+category: armour  # can be small arm, machine gun, heavy weapon, antitank, armour, artillery, close air support, or antiair
 vehicle_type: ifv # tank, armoured car, truck, artillery, arv, ifv, apc, cas, fighter, bomber, helicopter
 crew: 2
 weapons:

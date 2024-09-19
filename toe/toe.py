@@ -5,18 +5,62 @@ import string
 from pprint import pp
 from glob import glob
 
-def gen_id(le=10):
-    # generates a random ID string
-    alphabet = string.ascii_letters + string.digits 
-    internal_id = ''.join(secrets.choice(alphabet) for i in range(le))
-    return internal_id
-
 class DuplicateIDError(Exception):
     """Custom exception for duplicate TO&E or LIN IDs."""
     pass
 
 class Formation:
-    def __init__(self, name, toe):
+    def __init__(self, name, shortname, parent_shortname, toe):
+        self.name = name
+        self.shortname = shortname
+        self.parent_shortname = parent_shortname
+        self.nation = toe.nation
+        self.sidc = toe.sidc
+        self.id = name
+        # now we copy the TO&E from lower level units
+        self.subunits = []
+        self.vehicles = []
+        self.personnel = []
+        if len(toe.subunits) > 0:
+            count = 1
+            for sub in toe.subunits:
+                new_sub = self.copy_toe(str(count), str(count), sub)
+                self.subunits.append(new_sub)
+                count += 1
+        else:
+            # add personnel and equipment
+            for veh in toe.vehicles:
+                new_crew = []
+                for crew in veh.crew:
+                    crewman = Personnel(crew.name, crew.rank, crew.equipment)
+                    new_crew.append(crewman)
+                new_veh = Vehicle(veh.name, veh.equipment, new_crew)
+                self.vehicles.append(new_veh)
+            for pers in toe.personnel:
+                new_pers = Personnel(pers.name, pers.rank, pers.equipment)
+                self.personnel.append(new_pers)
+
+    def __repr__(self,):
+        return f'Formation({self.shortname}/{self.parent_shortname}, {self.nation})'
+
+    def copy_toe(self, name, shortname, toe):
+        return Formation(name, shortname, self.shortname, toe)
+    
+    def get_all_equipment(self,):
+        all_equipment = []
+        # add subunit equipment
+        for sub in self.subunits:
+            sub_equip = sub.get_all_equipment()
+            all_equipment += sub_equip
+        for pers in self.personnel:
+            all_equipment += pers.equipment
+        for veh in self.vehicles:
+            all_equipment += [veh.equipment] # vehicles have singular equipment
+            for crew in veh.crew:
+                all_equipment += crew.equipment
+        return all_equipment
+
+    def get_all_personnel(self,):
         pass
 
 class TOE:
@@ -49,15 +93,28 @@ class LIN:
         return 'LIN {} ({})'.format(self.lin, self.name)
 
 class Element:
-    def __init__(self, name: str, rank: str, equipment: list, crew: list):
+    def __init__(self, name: str):
         # an element is a person or a vehicle in a TO&E role
-        self.name = name # None if a vehicle, taken from LIN later
-        self.rank = rank # None if a vehicle
-        self.equipment = equipment
-        self.crew = crew # Crew will be other Elements that use this piece of equipment
+        self.name = name
 
     def __repr__(self):
-        return 'Element({}, {})'.format(self.name, self.rank)
+        return f"{self.__class__.__name__}(name={self.name})"
+    
+class Personnel(Element):
+    def __init__(self, name: str, rank: str, equipment: list):
+        super().__init__(name)
+        self.rank = rank  # Specific to Person
+        self.equipment = equipment
+
+    def __repr__(self):
+        return f"Personnel({self.name}. {self.rank})"
+
+class Vehicle(Element):
+    # Represents vehicles or crew served weapon roles
+    def __init__(self, name: str, equipment: str, crew: list):
+        super().__init__(name)
+        self.equipment = equipment # the LIN of the vehicle this represents
+        self.crew = crew # list of elements
 
 class TOE_Database:
     # Database containing all TO&E structures
@@ -108,8 +165,8 @@ class TOE_Database:
                 for p in toe_entry.personnel_entries:
                     pers_name = list(p.keys())[0]
                     equipment = [self.LIN[x] for x in p[pers_name]['equipment']]
-                    pers = Element(pers_name, p[pers_name]['rank'],
-                                equipment, None)
+                    pers = Personnel(pers_name, p[pers_name]['rank'],
+                                equipment)
                     toe_entry.personnel.append(pers)
                     # also add the rank into the personnel pool
                     if p[pers_name]['rank'] not in self.all_personnel:
@@ -126,16 +183,25 @@ class TOE_Database:
                             crewname = list(crewman.keys())[0]
                             print(toe_entry, crewman)
                             equipment = [self.LIN[x] for x in crewman[crewname]['equipment']]
-                            pers = Element(crewname, crewman[crewname]['rank'],
-                                           equipment, None)
+                            pers = Personnel(crewname, crewman[crewname]['rank'],
+                                           equipment)
                             crewmembers.append(pers)
                             toe_entry.personnel.append(pers)
-                    vehicle = Element(vehicle_lin.name, None, vehicle_lin, crewmembers)
+                    vehicle = Vehicle(vehicle_lin.name, vehicle_lin, crewmembers)
                     toe_entry.vehicles.append(vehicle)
 
             # set built flag to TOE entry
             print('Built {}'.format(toe_entry))
             toe_entry.is_built = True
+
+    def get_TOE(self, toe_id):
+        return self.TOE[toe_id]
+    
+    def gen_id(self, le=10):
+        # generates a random ID string
+        alphabet = string.ascii_letters + string.digits 
+        internal_id = ''.join(secrets.choice(alphabet) for i in range(le))
+        return internal_id
         
     def build_TOE(self,):
         # fills out TOE entries with objects
@@ -143,15 +209,15 @@ class TOE_Database:
             # check if this entry is built already:
             self.build_TOE_entry(toe)
 
-    def make_unit_json(self, unit_id, parent_json_id, group_json_id, side_json_id):
+    def make_unit_json(self, toe_entry, parent_json_id, group_json_id, side_json_id):
         subunits = []
-        unit_json_id = gen_id()
-        for u in self.TOE[unit_id].subunits:
-            subunits.append(self.make_unit_json(u.id, unit_json_id, group_json_id, side_json_id))
+        unit_json_id = self.gen_id()
+        for u in toe_entry.subunits:
+            subunits.append(self.make_unit_json(u, unit_json_id, group_json_id, side_json_id))
         # Create equipment for the unit
         equip = []
         equip_dict = {}
-        for el in self.TOE[unit_id].personnel:
+        for el in toe_entry.personnel:
             for eq in el.equipment:
                 eq_item = eq.name
                 if eq_item in equip_dict:
@@ -159,7 +225,7 @@ class TOE_Database:
                 else:
                     equip_dict[eq_item] = 1
         # add crewed equipment
-        for veh in self.TOE[unit_id].vehicles:
+        for veh in toe_entry.vehicles:
             eq_item = veh.equipment.name
             if eq_item in equip_dict:
                 equip_dict[eq_item] += 1
@@ -173,7 +239,7 @@ class TOE_Database:
         # Create the personnel listing for the unit 
         personnel = []
         personnel_dict = {}
-        for pers in self.TOE[unit_id].personnel:
+        for pers in toe_entry.personnel:
             rank = pers.rank
             if rank in personnel_dict:
                 personnel_dict[rank] += 1
@@ -182,10 +248,17 @@ class TOE_Database:
         for rank in personnel_dict:
             personnel.append({'name': rank,
                               'count': personnel_dict[rank]})
+        # Handling for Formations
+        if isinstance(toe_entry, Formation):
+            short_name = toe_entry.shortname
+            higher_formation = toe_entry.parent_shortname
+        else:
+            short_name = ''
+            higher_formation = ''
                     
         unit_json = {'id': unit_json_id,
-                     'name': self.TOE[unit_id].name,
-                     'sidc': self.TOE[unit_id].sidc,
+                     'name': toe_entry.name,
+                     'sidc': toe_entry.sidc,
                      '_pid': parent_json_id, # This is the parent ID
                      '_gid': group_json_id, # this is the group's ID
                      '_sid': side_json_id, # this is the side's ID
@@ -195,9 +268,9 @@ class TOE_Database:
                      'subUnits': subunits,
                      'equipment': equip,
                      'personnel': personnel,
-                     'shortName': None,
+                     'shortName': short_name,
                      'textAmplifiers': {
-                         'higherFormation': ''
+                         'higherFormation': higher_formation
                         }
                      }
         
@@ -206,7 +279,14 @@ class TOE_Database:
         
         return unit_json
 
-    def to_orbatmapper(self, filename, units):
+    def to_orbatmapper(self, filename: str, toe_ids: list = [], units: list = []):
+        """_summary_
+
+        Args:
+            filename (str): name of the file to export.
+            toe_ids (list, optional): List of TO&E IDs to export, all Strings. Defaults to [].
+            units (list, optional): List of specific Formations to export, all Formation. Defaults to [].
+        """
 
         from datetime import datetime, timezone
 
@@ -238,20 +318,25 @@ class TOE_Database:
 
         nations = []
         units_to_export = []
-        for unit in units:
+        for unit in toe_ids:
             units_to_export.append(self.TOE[unit])
             if self.TOE[unit].nation not in nations:
                 nations.append(self.TOE[unit].nation)
         
+        for unit in units: # units are standalone TO&Es
+            units_to_export.append(unit)
+            if unit.nation not in nations:
+                nations.append(unit.nation)
+        
         # create the sides
         sides = []
         for n in nations:
-            nation_id = gen_id()
-            group_id = gen_id()
+            nation_id = self.gen_id()
+            group_id = self.gen_id()
             subunits = []
             for unit in units_to_export:
                 if unit.nation == n:
-                    subunit = self.make_unit_json(unit.id, group_id, group_id, nation_id)
+                    subunit = self.make_unit_json(unit, group_id, group_id, nation_id)
                     subunits.append(subunit)
             nation = {'id': nation_id,
                       'name': n,
@@ -276,5 +361,11 @@ class TOE_Database:
 
 if __name__ == '__main__':
     db = TOE_Database()
-    db.load_database()
-    db.to_orbatmapper('toe.json', ['TOEEG020001', 'TOEEG020002', 'TOEEG020003', 'TOEWG000005'])
+    db.load_database()    
+    print('--------------------------------------')
+    MSR_332 = Formation('332 Motor Rifle Regiment', '332', 'EG', db.get_TOE('TOEEG020001'))
+    print(db.get_TOE('TOEEG020001').subunits)
+    print(MSR_332.subunits)
+    db.to_orbatmapper('toe.json',
+                      toe_ids=['TOEEG020001', 'TOEEG020002', 'TOEEG020003', 'TOEWG000005'],
+                      units=[MSR_332])
