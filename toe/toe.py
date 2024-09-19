@@ -277,4 +277,4 @@ class TOE_Database:
 if __name__ == '__main__':
     db = TOE_Database()
     db.load_database()
-    db.to_orbatmapper('toe.json', ['TOERU000014', 'TOERU000009', 'TOEEG020001', 'TOEEG020002', 'TOEEG020003', 'TOEWG000005'])
+    db.to_orbatmapper('toe.json', ['TOEEG020001', 'TOEEG020002', 'TOEEG020003', 'TOEWG000005'])
