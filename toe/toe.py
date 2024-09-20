@@ -1,7 +1,8 @@
 import yaml
 import json
 import secrets 
-import string         
+import string
+from enum import Enum
 from pprint import pp
 from glob import glob
 
@@ -9,14 +10,26 @@ class DuplicateIDError(Exception):
     """Custom exception for duplicate TO&E or LIN IDs."""
     pass
 
+# TODO: Probably should move enums into own file
+class ElementStatus(Enum):
+    UNDEFINED   = 0
+    ACTIVE      = 1
+    DAMAGED     = 2
+    DESTROYED   = 3
+
 class Formation:
-    def __init__(self, name, shortname, parent_shortname, toe):
+    def __init__(self, name: str, shortname: str, parent_shortname: str, toe, nsns: list = None):
         self.name = name
         self.shortname = shortname
         self.parent_shortname = parent_shortname
         self.nation = toe.nation
         self.sidc = toe.sidc
         self.id = name
+
+        if nsns is None: # Avoiding mutable default argument
+            nsns = []
+        print(nsns)
+
         # now we copy the TO&E from lower level units
         self.subunits = []
         self.vehicles = []
@@ -24,7 +37,7 @@ class Formation:
         if len(toe.subunits) > 0:
             count = 1
             for sub in toe.subunits:
-                new_sub = self.copy_toe(str(count), str(count), sub)
+                new_sub = self.copy_toe(str(count)+'/'+shortname, str(count)+'/'+shortname, sub, nsns)
                 self.subunits.append(new_sub)
                 count += 1
         else:
@@ -33,18 +46,24 @@ class Formation:
                 new_crew = []
                 for crew in veh.crew:
                     crewman = Personnel(crew.name, crew.rank, crew.equipment)
+                    crewman.set_status(ElementStatus.ACTIVE) # Unit is active by default
+                    crewman.assign_equipment(nsns)
                     new_crew.append(crewman)
                 new_veh = Vehicle(veh.name, veh.equipment, new_crew)
+                new_veh.set_status(ElementStatus.ACTIVE) # Unit is active by default
+                new_veh.assign_equipment(nsns)
                 self.vehicles.append(new_veh)
             for pers in toe.personnel:
                 new_pers = Personnel(pers.name, pers.rank, pers.equipment)
+                new_pers.set_status(ElementStatus.ACTIVE) # Unit is active by default
+                new_pers.assign_equipment(nsns)
                 self.personnel.append(new_pers)
 
     def __repr__(self,):
         return f'Formation({self.shortname}/{self.parent_shortname}, {self.nation})'
 
-    def copy_toe(self, name, shortname, toe):
-        return Formation(name, shortname, self.shortname, toe)
+    def copy_toe(self, name, shortname, toe, nsns):
+        return Formation(name, shortname, self.shortname, toe, nsns)
     
     def get_all_equipment(self,):
         all_equipment = []
@@ -61,7 +80,42 @@ class Formation:
         return all_equipment
 
     def get_all_personnel(self,):
-        pass
+        all_personnel = []
+        # add subunit equipment
+        for sub in self.subunits:
+            sub_personnel = sub.get_all_personnel()
+            all_personnel += sub_personnel
+        for pers in self.personnel:
+            all_personnel += [pers]
+        for veh in self.vehicles:
+            for crew in veh.crew:
+                all_personnel += [crew]
+        return all_personnel
+    
+    # FUNCTIONS FOR QJM INTEGRATION
+    def count_personnel(self,):
+        N_personnel = 0
+        personnel = self.get_all_personnel()
+        for p in personnel:
+            if p.status == ElementStatus.ACTIVE:
+                N_personnel += 1
+        return N_personnel
+    
+    def count_vehicles(self,):
+        vehicles = {}
+        # TODO: Need to get equipment by vehicle types
+        return vehicles
+    
+    def count_equipment(self,):
+        equipment = {}
+
+        return equipment
+    
+    def get_oli(self,):
+        # returns OLI statistics about formation
+        oli = {'Ws': 0, 'Wmg': 0, 'Whw': 0, 'Wgi': 0,
+                'Wg': 0, 'Wgy': 0, 'Wi': 0, 'Wy': 0}
+        return oli
 
 class TOE:
     def __init__(self, name: str, nation: str, sidc: str, toe_id: str,
@@ -89,13 +143,50 @@ class LIN:
         self.name = name
         self.item_entries = items
 
+    def assign_equipment(self, nsns: list):
+        """_summary_
+
+        Args:
+            nsns (list): List of available NSNs to choose from. If none of the NSNs
+                in this list are available to this LIN, it will return the highest priority item.
+                TODO: Should this return the *lowest* priority instead?
+
+        Returns:
+            str: Accepted NSN of given equipment
+        """
+        available = []
+        for nsn in nsns:
+            if nsn in self.item_entries:
+                available.append(nsn)
+        # For now, we will choose the first found NSN. TODO: do actual sorting for highest priority
+        if len(available) > 0:
+            equipment = available[0]
+        else:
+            equipment = self.item_entries[0]
+
+        return equipment
+
     def __repr__(self,):
         return 'LIN {} ({})'.format(self.lin, self.name)
 
 class Element:
     def __init__(self, name: str):
         # an element is a person or a vehicle in a TO&E role
-        self.name = name
+        self.name   = name
+        self.status = ElementStatus.UNDEFINED
+        self.assigned_equipment = None
+    
+    def set_status(self, status: ElementStatus):
+        """Set an Element's current status.
+
+        Args:
+            status (ElementStatus): New status to set the Element to
+        """
+        self.status = status
+
+    def assign_equipment(self, nsns: list):
+        print(f'---Attention: Assign_equipemnt is not overwritten for this Element type! {self}')
+        pass
 
     def __repr__(self):
         return f"{self.__class__.__name__}(name={self.name})"
@@ -106,6 +197,11 @@ class Personnel(Element):
         self.rank = rank  # Specific to Person
         self.equipment = equipment
 
+    def assign_equipment(self, nsns: list):
+        self.assigned_equipment = []
+        for e in self.equipment:
+            self.assigned_equipment.append(e.assign_equipment(nsns))
+
     def __repr__(self):
         return f"Personnel({self.name}. {self.rank})"
 
@@ -115,6 +211,9 @@ class Vehicle(Element):
         super().__init__(name)
         self.equipment = equipment # the LIN of the vehicle this represents
         self.crew = crew # list of elements
+
+    def assign_equipment(self, nsns: list):
+        self.assigned_equipment = [self.equipment.assign_equipment(nsns)]
 
 class TOE_Database:
     # Database containing all TO&E structures
@@ -186,7 +285,8 @@ class TOE_Database:
                             pers = Personnel(crewname, crewman[crewname]['rank'],
                                            equipment)
                             crewmembers.append(pers)
-                            toe_entry.personnel.append(pers)
+                            # Commented for now - Don't add the personnel entry for the crewmembers to make it easier to track crew!
+                            # toe_entry.personnel.append(pers)
                     vehicle = Vehicle(vehicle_lin.name, vehicle_lin, crewmembers)
                     toe_entry.vehicles.append(vehicle)
 
@@ -218,15 +318,26 @@ class TOE_Database:
         equip = []
         equip_dict = {}
         for el in toe_entry.personnel:
-            for eq in el.equipment:
-                eq_item = eq.name
-                if eq_item in equip_dict:
-                    equip_dict[eq_item] += 1
-                else:
-                    equip_dict[eq_item] = 1
+            if el.assigned_equipment is None:
+                for eq in el.equipment:
+                    eq_item = eq.name
+                    if eq_item in equip_dict:
+                        equip_dict[eq_item] += 1
+                    else:
+                        equip_dict[eq_item] = 1
+            else:
+                for eq in el.assigned_equipment:
+                    if eq in equip_dict:
+                        equip_dict[eq] += 1
+                    else:
+                        equip_dict[eq] = 1
+
         # add crewed equipment
         for veh in toe_entry.vehicles:
-            eq_item = veh.equipment.name
+            if veh.assigned_equipment is None:
+                eq_item = veh.equipment.name
+            else:
+                eq_item = veh.assigned_equipment[0]
             if eq_item in equip_dict:
                 equip_dict[eq_item] += 1
             else:
@@ -245,6 +356,13 @@ class TOE_Database:
                 personnel_dict[rank] += 1
             else:
                 personnel_dict[rank] = 1
+        for veh in toe_entry.vehicles:
+            for crew in veh.crew:
+                rank = crew.rank
+                if rank in personnel_dict:
+                    personnel_dict[rank] += 1
+                else:
+                    personnel_dict[rank] = 1
         for rank in personnel_dict:
             personnel.append({'name': rank,
                               'count': personnel_dict[rank]})
@@ -305,7 +423,11 @@ class TOE_Database:
         equips = []
         for x in self.LIN:
             lin = self.LIN[x]
-            equips.append({'name': lin.name, 'description': '{}: {}'.format(lin.lin, lin.item_entries[0])})
+            # add a generic equipment type
+            equips.append({'name': lin.name, 'description': f'{lin.lin}: {lin.item_entries[0]}'})
+            # add specific equipment types
+            for item in lin.item_entries:
+                equips.append({'name': item, 'description': f'{lin.lin}: {lin.name}'})
 
         orbatmapper['equipment'] = equips
 
@@ -363,9 +485,17 @@ if __name__ == '__main__':
     db = TOE_Database()
     db.load_database()    
     print('--------------------------------------')
-    MSR_332 = Formation('332 Motor Rifle Regiment', '332', 'EG', db.get_TOE('TOEEG020001'))
-    print(db.get_TOE('TOEEG020001').subunits)
-    print(MSR_332.subunits)
+    unit_nsns = ['MPi-KM', 'MPi-KMS', 'BMP-1', 'T-55A', 'ZSU-23-4V', '9K35 Strela-10']
+    MSR_332 = Formation('332 Motor Rifle Regiment', '332', 'EG', db.get_TOE('TOEEG020001'), unit_nsns)
+    MSR_332_equip = MSR_332.get_all_equipment()
+    eq = {}
+    for e in MSR_332_equip:
+        if e.item_entries[0] not in eq:
+            eq[e.item_entries[0]] = 1
+        else:
+            eq[e.item_entries[0]] += 1
+    print(eq)
+    print(MSR_332.count_personnel())
     db.to_orbatmapper('toe.json',
                       toe_ids=['TOEEG020001', 'TOEEG020002', 'TOEEG020003', 'TOEWG000005'],
                       units=[MSR_332])
