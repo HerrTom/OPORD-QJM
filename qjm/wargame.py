@@ -8,7 +8,8 @@ import numpy as np
 from .weapon import Weapon
 from .vehicle import Vehicle
 from .formation import Formation
-from .factors import * # imports all lookup tables
+from .factors import *  # imports all lookup tables
+
 
 class Wargame:
     def __init__(self):
@@ -320,7 +321,7 @@ class Wargame:
               '  Defender: P:{:,.1f} m:{:,.1f} v:{:,.1f}\n'.format(def_P, def_m, def_v) +
               'Casualty Rates:\n' +
               '  Attacker: {:.2f}% pers {:.2f}% tanks {:.2f}% artillery\n'.format(ca*100, cia*100, cga*100) +
-              '             {:,.0f}/{:,.0f} personnel | {:,.0f}/{:,.0f} armour\n'.format(ca*Na, Na, cia*Nia, Nia) + 
+              '             {:,.0f}/{:,.0f} personnel | {:,.0f}/{:,.0f} armour\n'.format(ca*Na, Na, cia*Nia, Nia) +
               '      Factors: P{:,.2f} S{:,.2f} Arm{:,.2f}\n'.format(ca_power, ca_strength, ca_arm, Nia) +
               '  Defender: {:.2f}% pers {:.2f}% tanks {:.2f}% artillery\n'.format(cd*100, cid*100, cgd*100) +
               '      Factors: P{:,.2f} S{:,.2f} Arm{:,.2f}\n'.format(cd_power, cd_strength, cd_arm) +

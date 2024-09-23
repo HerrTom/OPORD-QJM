@@ -1,14 +1,15 @@
 import yaml
 import json
-import secrets 
+import secrets
 import string
 from enum import Enum
-from pprint import pp
 from glob import glob
+
 
 class DuplicateIDError(Exception):
     """Custom exception for duplicate TO&E or LIN IDs."""
     pass
+
 
 # TODO: Probably should move enums into own file
 class ElementStatus(Enum):
@@ -16,6 +17,7 @@ class ElementStatus(Enum):
     ACTIVE      = 1
     DAMAGED     = 2
     DESTROYED   = 3
+
 
 class Formation:
     def __init__(self, name: str, shortname: str, parent_shortname: str, toe, nsns: list = None):

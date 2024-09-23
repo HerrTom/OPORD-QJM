@@ -22,6 +22,7 @@ with open('./database/tables/PTS.csv') as f:
         PTS_CAL.append(float(row[0]))
         PTS_PTS.append(float(row[1]))        
 
+
 class Weapon:
     def __init__(self, file):
         with open(file) as f:
@@ -32,21 +33,20 @@ class Weapon:
         self.category = data['category']
         self.crew = data['crew']
         self.d_calibre = data['calibre'] # calibre in mm of weapon
-        self.d_ROF_type = data['rof_type'] # one of six options:
-            # crewed; handheld; aircraft; calibre; mortar;
-        self.d_weap_type = data['weap_type'] # type of weapon, can be:
-            # gun, mortar, missile, bomb
-        self.d_ROF = data['ROF'] # Rate of fire (cyclic per minute)
-        self.d_PTS = data['PTS'] # if 0, use calibre calculation
-        self.d_RIE = data['RIE'] # relative incapacitation, usually 1 except
-            # for small arms - 0.8 seems normal for most rifles
+        self.d_ROF_type = data['rof_type']  # one of six options:
+                                        # crewed; handheld; aircraft; calibre; mortar;
+        self.d_weap_type = data['weap_type']  # type of weapon, can be:
+                                              # gun, mortar, missile, bomb
+        self.d_ROF = data['ROF']    # Rate of fire (cyclic per minute)
+        self.d_PTS = data['PTS']    # if 0, use calibre calculation
+        self.d_RIE = data['RIE']    # relative incapacitation, usually 1 except
+                                    # for small arms - 0.8 seems normal for most rifles
         self.d_eff_range = data['eff_range']
         self.d_muzzle_vel = data['muzzle_vel']
         self.d_accuracy = data['accuracy']
         self.d_reliability = data['reliability']
         self.d_sp_arty = data['sp_arty']
-        self.d_missile_guidance = data['guidance']
-            # Guided can be no, beam, wire, command, radar
+        self.d_missile_guidance = data['guidance']  # Guided can be no, beam, wire, command, radar
         self.d_barrels = data['barrels']
         self.d_charges = data['arty_charges']
 
@@ -133,6 +133,6 @@ class Weapon:
                         self.q_MCE * self.q_GE / GLOBAL_DISPERSION)
 
         print('Weapon Loaded: {:} | {:,.1f}'.format(self.name, self.q_OLI))
-    
+
     def __repr__(self):
         return "Weapon({})".format(self.name)
