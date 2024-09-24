@@ -1,6 +1,7 @@
 import csv
 import yaml
 import numpy as np
+import logging
 
 GLOBAL_DISPERSION = 4000
 
@@ -132,7 +133,7 @@ class Weapon:
                         self.q_A * self.q_RL * self.q_SME * self.q_MBE * \
                         self.q_MCE * self.q_GE / GLOBAL_DISPERSION)
 
-        print('Weapon Loaded: {:} | {:,.1f}'.format(self.name, self.q_OLI))
+        logging.info('Weapon Loaded: {:} | {:,.1f}'.format(self.name, self.q_OLI))
 
     def __repr__(self):
         return "Weapon({})".format(self.name)

@@ -1,6 +1,7 @@
 import csv
 import yaml
 import numpy as np
+import logging
 
 # load in interpolation arrays
 RFE_ROF = []
@@ -127,7 +128,7 @@ class Vehicle:
         self.q_OLI = q_W * q_RFE * q_FCE * q_ASE * \
             q_AME * q_CL * q_WHT
         
-        print('Vehicle Loaded: {:} | {:,.0f}'.format(self.name, self.q_OLI, q_W))
+        logging.info('Vehicle Loaded: {:} | {:,.0f}'.format(self.name, self.q_OLI, q_W))
 
     def __repr__(self):
         return "Vehicle({})".format(self.name)

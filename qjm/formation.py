@@ -1,4 +1,5 @@
 import yaml
+import logging
 from random import random
 from uuid import uuid1
 
@@ -26,12 +27,11 @@ class Formation():
             if key in weapon_dict:
                 self.equipment.update({weapon_dict[key]: [equip[key], equip[key], 0, 0]})
             else:
-                print('Warning: {} not found in database!'.format(key))
+                logging.error('Error: {} not found in database!'.format(key))
         self.calc_personnel()
 
 
-        print('Loaded Formation: {:} w/ {:,.0f} personnel'.format(self.name, self.personnel))
-        print(self.get_OLI())
+        logging.info('Loaded Formation: {:} w/ {:,.0f} personnel @ {:,.0f}'.format(self.name, self.personnel, self.get_OLI()))
 
     def __repr__(self,):
         return ('Formation({} [{}])'.format(self.name, self.faction))
@@ -74,7 +74,7 @@ class Formation():
             elif equip.category == 'aircraft':
                 OLI['Wy'] += equip.q_OLI * self.equipment[equip][1]
             else:
-                print('Unknown category: {}'.format(equip.category))
+                logging.warning('Unknown category: {}'.format(equip.category))
         return OLI
     
     def inflict_losses(self, C, C_Arm, C_Arty, isAttacker):
@@ -156,7 +156,6 @@ class Formation():
                 RR = RF_Vehicles
             
             self.casualty(e, CR, RR)
-            print(e, CR, RR)
 
 
     def casualty(self, e, CR, RR):

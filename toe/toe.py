@@ -2,6 +2,7 @@ import yaml
 import json
 import secrets
 import string
+import logging
 from enum import Enum
 from glob import glob
 
@@ -30,7 +31,6 @@ class Formation:
 
         if nsns is None: # Avoiding mutable default argument
             nsns = []
-        print(nsns)
 
         # now we copy the TO&E from lower level units
         self.subunits = []
@@ -122,6 +122,18 @@ class Formation:
 class TOE:
     def __init__(self, name: str, nation: str, sidc: str, toe_id: str,
                  subunits: list, personnel: list, vehicles: list):
+        """
+        Initialize a new TO&E (Table of Organization and Equipment).
+
+        Args:
+            name (str): The name of the TO&E.
+            nation (str): The nation to which the TO&E belongs.
+            sidc (str): The Symbol Identification Code (SIDC) for the TO&E.
+            toe_id (str): The unique identifier for the TO&E.
+            subunits (list): A list of subunit entries.
+            personnel (list): A list of personnel entries.
+            vehicles (list): A list of vehicle entries.
+        """
         # default blank TO&E
         self.name = name
         self.nation = nation
@@ -141,6 +153,14 @@ class TOE:
 
 class LIN:
     def __init__(self, lin: str, name: str, items: list):
+        """
+        Initialize a new LIN (Line Item Number).
+
+        Args:
+            lin (str): The Line Item Number.
+            name (str): The name of the LIN.
+            items (list): A list of item entries associated with the LIN.
+        """
         self.lin = lin
         self.name = name
         self.item_entries = items
@@ -173,6 +193,12 @@ class LIN:
 
 class Element:
     def __init__(self, name: str):
+        """
+        Initialize a new Element.
+
+        Args:
+            name (str): The name of the Element.
+        """
         # an element is a person or a vehicle in a TO&E role
         self.name   = name
         self.status = ElementStatus.UNDEFINED
@@ -182,12 +208,18 @@ class Element:
         """Set an Element's current status.
 
         Args:
-            status (ElementStatus): New status to set the Element to
+            status (ElementStatus): New status to set on the Element
         """
         self.status = status
 
     def assign_equipment(self, nsns: list):
-        print(f'---Attention: Assign_equipemnt is not overwritten for this Element type! {self}')
+        """
+        Assign equipment to the Element. This method should be overridden by subclasses.
+
+        Args:
+            nsns (list): List of available NSNs (National Stock Numbers) to choose from.
+        """
+        logging.error(f'---Attention: Assign_equipemnt is not overwritten for this Element type! {self}')
         pass
 
     def __repr__(self):
@@ -195,11 +227,23 @@ class Element:
     
 class Personnel(Element):
     def __init__(self, name: str, rank: str, equipment: list):
+        """
+        Initialize a new Element.
+
+        Args:
+            name (str): The name of the Element.
+        """
         super().__init__(name)
         self.rank = rank  # Specific to Person
         self.equipment = equipment
 
     def assign_equipment(self, nsns: list):
+        """
+        Assign equipment to the personnel from the available NSNs.
+
+        Args:
+            nsns (list): List of available NSNs (National Stock Numbers) to choose from.
+        """
         self.assigned_equipment = []
         for e in self.equipment:
             self.assigned_equipment.append(e.assign_equipment(nsns))
@@ -210,21 +254,46 @@ class Personnel(Element):
 class Vehicle(Element):
     # Represents vehicles or crew served weapon roles
     def __init__(self, name: str, equipment: str, crew: list):
+        """
+        Initialize a new Vehicle element.
+
+        Args:
+            name (str): The name of the vehicle.
+            equipment (str): The LIN (Line Item Number) of the vehicle this represents.
+            crew (list): A list of crew elements assigned to the vehicle.
+        """
         super().__init__(name)
         self.equipment = equipment # the LIN of the vehicle this represents
         self.crew = crew # list of elements
 
     def assign_equipment(self, nsns: list):
+        """
+        Assign equipment to the vehicle from the available NSNs.
+
+        Args:
+            nsns (list): List of available NSNs (National Stock Numbers) to choose from.
+        """
         self.assigned_equipment = [self.equipment.assign_equipment(nsns)]
 
 class TOE_Database:
-    # Database containing all TO&E structures
+    """
+    A database containing all TO&E (Table of Organization and Equipment) structures.
+    """
     def __init__(self,):
+        """
+        Initialize a new TOEDatabase instance.
+        """
         self.TOE = {}
         self.LIN = {}
         self.all_personnel = []
 
     def load_database(self,):
+        """
+        Load the TO&E and LIN data from YAML files into the database.
+        
+        Raises:
+            DuplicateIDError: If a duplicate TO&E or LIN ID is found.
+        """
         # hardcoded for now
         raw_toe_files = glob('./database/toe/**/*.yaml', recursive=True)
         raw_lin_files = glob('./database/lin_equipment/**/*.yaml', recursive=True)
@@ -235,6 +304,7 @@ class TOE_Database:
                 data = yaml.safe_load(f)
             for lin in data:
                 if lin in self.LIN:
+                    logging.error(f"Duplicate LIN ID found: {lin} in {filename}")
                     raise DuplicateIDError(f"Duplicate LIN ID found: {lin} in {filename}")
                 line_item = LIN(lin, data[lin]['name'], data[lin]['items'])
                 self.LIN.update({lin: line_item})
@@ -243,6 +313,7 @@ class TOE_Database:
             with open(filename, 'r') as f:
                 data = yaml.safe_load(f)
             if data['id'] in self.TOE:
+                logging.error(f"Duplicate TO&E ID found: {data['id']} in {filename}")            
                 raise DuplicateIDError(f"Duplicate TO&E ID found: {data['id']} in {filename}")
             toe_entry = TOE(data['name'], data['nation'], data['sidc'], data['id'],
                             data['subunits'], data['personnel'], data['vehicles'])
@@ -250,7 +321,13 @@ class TOE_Database:
 
         self.build_TOE()
 
-    def build_TOE_entry(self, toe_id):
+    def build_TOE_entry(self, toe_id: str):
+        """
+        Build a TO&E entry by its ID.
+
+        Args:
+            toe_id (str): The ID of the TO&E entry to build.
+        """
         toe_entry = self.TOE[toe_id]
         if not toe_entry.is_built:
             # check if this TOE has subunits
@@ -282,7 +359,6 @@ class TOE_Database:
                         for crewman in veh[lin]:
                             # create an Element entry for this crewman
                             crewname = list(crewman.keys())[0]
-                            print(toe_entry, crewman)
                             equipment = [self.LIN[x] for x in crewman[crewname]['equipment']]
                             pers = Personnel(crewname, crewman[crewname]['rank'],
                                            equipment)
@@ -293,25 +369,57 @@ class TOE_Database:
                     toe_entry.vehicles.append(vehicle)
 
             # set built flag to TOE entry
-            print('Built {}'.format(toe_entry))
+            logging.info('Built {}'.format(toe_entry))
             toe_entry.is_built = True
 
-    def get_TOE(self, toe_id):
+    def get_TOE(self, toe_id: str):
+        """
+        Get a TO&E entry by its ID.
+
+        Args:
+            toe_id (str): The ID of the TO&E entry to retrieve.
+
+        Returns:
+            TOE: The TO&E entry with the specified ID.
+        """
         return self.TOE[toe_id]
     
     def gen_id(self, le=10):
+        """
+        Generate a random ID string.
+
+        Args:
+            le (int, optional): The length of the ID string. Defaults to 10.
+
+        Returns:
+            str: A randomly generated ID string.
+        """
         # generates a random ID string
         alphabet = string.ascii_letters + string.digits 
         internal_id = ''.join(secrets.choice(alphabet) for i in range(le))
         return internal_id
         
     def build_TOE(self,):
-        # fills out TOE entries with objects
+        """
+        Build all TO&E entries in the database.
+        """
         for toe in self.TOE:
             # check if this entry is built already:
             self.build_TOE_entry(toe)
 
     def make_unit_json(self, toe_entry, parent_json_id, group_json_id, side_json_id):
+        """
+        Create a JSON representation of a TO&E entry.
+
+        Args:
+            toe_entry (TOE): The TO&E entry to convert to JSON.
+            parent_json_id (str): The parent JSON ID.
+            group_json_id (str): The group JSON ID.
+            side_json_id (str): The side JSON ID.
+
+        Returns:
+            dict: A JSON representation of the TO&E entry.
+        """
         subunits = []
         unit_json_id = self.gen_id()
         for u in toe_entry.subunits:
@@ -400,12 +508,13 @@ class TOE_Database:
         return unit_json
 
     def to_orbatmapper(self, filename: str, toe_ids: list = [], units: list = []):
-        """_summary_
+        """
+        Export the TO&E database to an OrbatMapper JSON file.
 
         Args:
-            filename (str): name of the file to export.
-            toe_ids (list, optional): List of TO&E IDs to export, all Strings. Defaults to [].
-            units (list, optional): List of specific Formations to export, all Formation. Defaults to [].
+            filename (str): The name of the file to export.
+            toe_ids (list, optional): List of TO&E IDs to export. Defaults to [].
+            units (list, optional): List of specific Formations to export. Defaults to [].
         """
 
         from datetime import datetime, timezone
@@ -416,7 +525,7 @@ class TOE_Database:
 
         # set the modified dates
         now = datetime.now(timezone.utc).isoformat().replace('+00:00', '') + 'Z'
-        print(now)
+        logging.info(f'Created OrbatMapper file dated {now}')
         orbatmapper['meta']['createdDate'] = now
         orbatmapper['meta']['lastModifiedDate'] = now
         orbatmapper['meta']['exportedDate'] = now

@@ -1,6 +1,7 @@
 import socket
 import json
 import yaml
+import logging
 from glob import glob
 from uuid import uuid1
 import numpy as np
@@ -290,9 +291,6 @@ class Wargame:
         if def_v < 0.6:
             def_v = 0.6
 
-        print(atk_V, atk_S, atk_V / atk_S)
-        print(def_V, def_S, def_V / def_S)
-
         atk_P = atk_S * atk_m * usa * rua * hua * zua * atk_v * float(battleData['atkcev'])
         def_P = def_S * def_m * usd * rud * hud * zud * def_v * float(battleData['defcev'])
 
@@ -356,7 +354,7 @@ def handle_client_connection(client_socket):
 
     wg = Wargame()
     wg.load_scenario('NextWarPoland') # TODO: Un-hardcode this!
-    print(wg.formations)
+    logging.info(wg.formations)
 
     if request['command'] == 'load_formations':
         response = []
@@ -373,7 +371,7 @@ if __name__ == "__main__":
     server.bind(("0.0.0.0", 9999))
     server.listen(5)  # max backlog of connections
 
-    print("Listening on port 9999")
+    logging.info("Listening on port 9999")
     while True:
         client_sock, address = server.accept()
         handle_client_connection(client_sock)
