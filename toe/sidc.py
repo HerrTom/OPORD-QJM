@@ -1,4 +1,10 @@
 # Helper function to generate a SIDC code
+class SIDCEntity:
+    entity = {
+        'Command and Control': '11',
+        'Movement and Maneuver': '12',
+        'Fires': '13',
+    }
 
 class SIDC:
     def __init__(self,):
@@ -28,14 +34,19 @@ class SIDC:
         #     Digits 19 and 20 is the second modifier.
         self.second_modifier = '00'
 
+    def set_entity(self, entity: str):
+        self.entity_name = entity
+
+
+    def generate(self):
         self.sidc = ''.join([self.version, self.standard_identity_context,
                              self.standard_identity, self.symbol_set,
                              self.status, self.headquarters,
                              self.echelon_amplifier, self.entity,
                              self.entity_type, self.entity_subtype,
                             self.first_modifier, self.second_modifier])
-
+        return self.sidc
 
 s = SIDC()
 
-print(s.sidc)
+print(s.generate())

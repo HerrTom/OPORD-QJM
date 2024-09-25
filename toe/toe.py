@@ -3,21 +3,12 @@ import json
 import secrets
 import string
 import logging
-from enum import Enum
 from glob import glob
 
-
-class DuplicateIDError(Exception):
-    """Custom exception for duplicate TO&E or LIN IDs."""
-    pass
-
-
-# TODO: Probably should move enums into own file
-class ElementStatus(Enum):
-    UNDEFINED   = 0
-    ACTIVE      = 1
-    DAMAGED     = 2
-    DESTROYED   = 3
+from .enums import ElementStatus
+from .exceptions import DuplicateIDError
+from .lin import LIN
+from .element import Personnel, Vehicle
 
 
 class Formation:
@@ -150,130 +141,6 @@ class TOE:
         
     def __repr__(self,):
         return 'TO&E({}: {}, {})'.format(self.id, self.name, self.nation)
-
-class LIN:
-    def __init__(self, lin: str, name: str, items: list):
-        """
-        Initialize a new LIN (Line Item Number).
-
-        Args:
-            lin (str): The Line Item Number.
-            name (str): The name of the LIN.
-            items (list): A list of item entries associated with the LIN.
-        """
-        self.lin = lin
-        self.name = name
-        self.item_entries = items
-
-    def assign_equipment(self, nsns: list):
-        """_summary_
-
-        Args:
-            nsns (list): List of available NSNs to choose from. If none of the NSNs
-                in this list are available to this LIN, it will return the highest priority item.
-                TODO: Should this return the *lowest* priority instead?
-
-        Returns:
-            str: Accepted NSN of given equipment
-        """
-        available = []
-        for nsn in nsns:
-            if nsn in self.item_entries:
-                available.append(nsn)
-        # For now, we will choose the first found NSN. TODO: do actual sorting for highest priority
-        if len(available) > 0:
-            equipment = available[0]
-        else:
-            equipment = self.item_entries[0]
-
-        return equipment
-
-    def __repr__(self,):
-        return 'LIN {} ({})'.format(self.lin, self.name)
-
-class Element:
-    def __init__(self, name: str):
-        """
-        Initialize a new Element.
-
-        Args:
-            name (str): The name of the Element.
-        """
-        # an element is a person or a vehicle in a TO&E role
-        self.name   = name
-        self.status = ElementStatus.UNDEFINED
-        self.assigned_equipment = None
-    
-    def set_status(self, status: ElementStatus):
-        """Set an Element's current status.
-
-        Args:
-            status (ElementStatus): New status to set on the Element
-        """
-        self.status = status
-
-    def assign_equipment(self, nsns: list):
-        """
-        Assign equipment to the Element. This method should be overridden by subclasses.
-
-        Args:
-            nsns (list): List of available NSNs (National Stock Numbers) to choose from.
-        """
-        logging.error(f'---Attention: Assign_equipemnt is not overwritten for this Element type! {self}')
-        pass
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}(name={self.name})"
-    
-class Personnel(Element):
-    def __init__(self, name: str, rank: str, equipment: list):
-        """
-        Initialize a new Element.
-
-        Args:
-            name (str): The name of the Element.
-        """
-        super().__init__(name)
-        self.rank = rank  # Specific to Person
-        self.equipment = equipment
-
-    def assign_equipment(self, nsns: list):
-        """
-        Assign equipment to the personnel from the available NSNs.
-
-        Args:
-            nsns (list): List of available NSNs (National Stock Numbers) to choose from.
-        """
-        self.assigned_equipment = []
-        for e in self.equipment:
-            self.assigned_equipment.append(e.assign_equipment(nsns))
-
-    def __repr__(self):
-        return f"Personnel({self.name}. {self.rank})"
-
-class Vehicle(Element):
-    # Represents vehicles or crew served weapon roles
-    def __init__(self, name: str, equipment: str, crew: list):
-        """
-        Initialize a new Vehicle element.
-
-        Args:
-            name (str): The name of the vehicle.
-            equipment (str): The LIN (Line Item Number) of the vehicle this represents.
-            crew (list): A list of crew elements assigned to the vehicle.
-        """
-        super().__init__(name)
-        self.equipment = equipment # the LIN of the vehicle this represents
-        self.crew = crew # list of elements
-
-    def assign_equipment(self, nsns: list):
-        """
-        Assign equipment to the vehicle from the available NSNs.
-
-        Args:
-            nsns (list): List of available NSNs (National Stock Numbers) to choose from.
-        """
-        self.assigned_equipment = [self.equipment.assign_equipment(nsns)]
 
 class TOE_Database:
     """
