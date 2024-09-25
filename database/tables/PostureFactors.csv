@@ -1,4 +1,4 @@
-Posture,Strength (us),Vulnerability (uv),Attack Casualties (uca),Defense Casualties (ucd)
+Posture,Strength (u_s),Vulnerability (u_v),Attack Casualties (u_ca),Defense Casualties (u_cd)
 Hasty Defense,1.3,0.7,1,0.8
 Prepared Defense,1.5,0.6,1,0.85
 Fortified Defense,1.6,0.5,1,0.9

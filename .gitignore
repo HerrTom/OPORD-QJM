@@ -3,6 +3,8 @@ toe.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
+qjm/__pycache__/
+toe/__pycache__/
 *.py[cod]
 *$py.class
 

@@ -1,4 +1,4 @@
-Air Superiority,Mobility (myd),Mobility (myw),Artillery (wyg),Air (wyy),Vulnerability (vy)
+Air Superiority,Mobility (m_yd),Mobility (m_yw),Artillery (w_yg),Air (w_yy),Vulnerability (v_y)
 Air Superiority,1.1,1,1.1,1.1,0.9
-Air Equality,1,1,1,1,1.0
+Air Equality,1,1,1,1,1
 Air Inferiority,0.9,1,0.9,0.9,1.1

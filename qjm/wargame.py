@@ -9,7 +9,16 @@ import numpy as np
 from .weapon import Weapon
 from .vehicle import Vehicle
 from .formation import Formation
-from .factors import *  # imports all lookup tables
+from .factors import (
+    TERRAIN_FACTORS,
+    WEATHER_FACTORS,
+    SEASON_FACTORS,
+    POSTURE_FACTORS,
+    SURPRISE_FACTORS,
+    AIR_SUPERIORITY_FACTORS,
+    OPPOSITION_FACTORS,
+    STRENGTH_SIZE_FACTORS,
+    STRENGTH_SIZE_ARMOUR_FACTORS)
 
 
 class Wargame:
@@ -162,41 +171,71 @@ class Wargame:
 
         # Attacker variables
         # Terrain Factors
-        rm  = TERRAIN_DATA[battleData['terrain']][0] # Mobility
+        rm  = TERRAIN_FACTORS.get(battleData['terrain'],
+                                  'Mobility (r_m)')
         rua  = 1.0
-        rud  = TERRAIN_DATA[battleData['terrain']][1] # Defense Position
-        rn  = TERRAIN_DATA[battleData['terrain']][2] # Infantry
-        rwg = TERRAIN_DATA[battleData['terrain']][3] # Artillery
-        rwy = TERRAIN_DATA[battleData['terrain']][4] # Air
-        rwi = TERRAIN_DATA[battleData['terrain']][5] # Tanks
-        rc  = TERRAIN_DATA[battleData['terrain']][6] # Casualties
+        rud  = TERRAIN_FACTORS.get(battleData['terrain'],
+                                  'Defense Position (r_u)')
+        rn  = TERRAIN_FACTORS.get(battleData['terrain'],
+                                  'Infantry Weapons (r_n)')
+        rwg = TERRAIN_FACTORS.get(battleData['terrain'],
+                                  'Artillery (r_wg)')
+        rwy = TERRAIN_FACTORS.get(battleData['terrain'],
+                                  'Air (r_wy)')
+        rwi = TERRAIN_FACTORS.get(battleData['terrain'],
+                                  'Tanks (r_wt)')
+        rc  = TERRAIN_FACTORS.get(battleData['terrain'],
+                                  'Casualty (r_c)')
         # Weather Factors
-        hm  = WEATHER_DATA[battleData['weather']][0] # Mobility
-        hua = WEATHER_DATA[battleData['weather']][1] # Attack
+        hm  = WEATHER_FACTORS.get(battleData['weather'],
+                              'Mobility (h_m)')
+        hua = WEATHER_FACTORS.get(battleData['weather'],
+                              'Attack (h_ua)')
         hud = 1.0
-        hwg = WEATHER_DATA[battleData['weather']][2] # Artillery
-        hwy = WEATHER_DATA[battleData['weather']][3] # Air
-        hwi = WEATHER_DATA[battleData['weather']][4] # Tanks
-        hc  = WEATHER_DATA[battleData['weather']][5] # Casualties
+        hwg = WEATHER_FACTORS.get(battleData['weather'],
+                              'Artillery (h_wg)')
+        hwy = WEATHER_FACTORS.get(battleData['weather'],
+                              'Air (h_wy)')
+        hwi = WEATHER_FACTORS.get(battleData['weather'],
+                              'Tanks (h_wt)')
+        hc  = WEATHER_FACTORS.get(battleData['weather'],
+                              'Casualties (h_c)')
         # Season Factors
-        zua = SEASON_DATA[battleData['season']][0] # Attack factor
+        zua = SEASON_FACTORS.get(battleData['season'],
+                             'Attack (z_u)')
         zud = 1.0
-        zwg = SEASON_DATA[battleData['season']][1] # Artillery
-        zwy = SEASON_DATA[battleData['season']][2] # Air
+        zwg = SEASON_FACTORS.get(battleData['season'],
+                             'Artillery (z_wg)')
+        zwy = SEASON_FACTORS.get(battleData['season'],
+                             'Air (z_wy)')
         # Posture Factors
         usa = 1.0
-        usd = DEFENSE_DATA[battleData['posture']][0]
+        usd = POSTURE_FACTORS.get(battleData['posture'],
+                              'Strength (u_s)')
         uva = 1.0
-        uvd = DEFENSE_DATA[battleData['posture']][1]
-        uca = DEFENSE_DATA[battleData['posture']][2]
-        ucd = DEFENSE_DATA[battleData['posture']][3]
+        uvd = POSTURE_FACTORS.get(battleData['posture'],
+                              'Vulnerability (u_v)')
+        uca = POSTURE_FACTORS.get(battleData['posture'],
+                              'Attack Casualties (u_ca)')
+        ucd = POSTURE_FACTORS.get(battleData['posture'],
+                              'Defense Casualties (u_cd)')
         # Surprise Factors
         eraSurpriseFactor = 1.33 # 1.33 post 1966
-        Msur  = SURPRISE_DATA[battleData['atksurprise']][0] * eraSurpriseFactor
-        Vsura = SURPRISE_DATA[battleData['atksurprise']][1] * eraSurpriseFactor
-        Vsurd = SURPRISE_DATA[battleData['atksurprise']][2] * eraSurpriseFactor
-        su_c  = SURPRISE_DATA[battleData['atksurprise']][3] * eraSurpriseFactor
-        su_ct = SURPRISE_DATA[battleData['atksurprise']][4] * eraSurpriseFactor
+        Msur  = SURPRISE_FACTORS.get(battleData['atksurprise'],
+                                     'Mobility Characteristics (Msur)'
+                                     ) * eraSurpriseFactor
+        Vsura = SURPRISE_FACTORS.get(battleData['atksurprise'],
+                                     'Vulnerability (Vsur)'
+                                     ) * eraSurpriseFactor
+        Vsurd = SURPRISE_FACTORS.get(battleData['atksurprise'],
+                                     'Surprised Vulnerability (Vsurd)'
+                                     ) * eraSurpriseFactor
+        su_c  = SURPRISE_FACTORS.get(battleData['atksurprise'],
+                                     'Surprised Vulnerability (Vsurd)'
+                                     ) * eraSurpriseFactor
+        su_ct = SURPRISE_FACTORS.get(battleData['atksurprise'],
+                                     'Surprised Vulnerability (Vsurd)'
+                                     ) * eraSurpriseFactor
         surprise_days = int(battleData['atksurprisedays'])
         # Update surprise factors for duration, all trend to 1.0 and reduce by 1/3 for each day
         Msur  = 1.0 + (Msur-1.0) * (3-surprise_days)/3
@@ -214,43 +253,73 @@ class Wargame:
         # Air Superiority Factors
         if battleData['airsuperiority'] == 'Air Superiority':
             if hwy > 0.5:
-                atk_my = AIRSUPERIORITY_DATA['Air Superiority'][0]
-                def_my = AIRSUPERIORITY_DATA['Air Inferiority'][0]
+                atk_my = AIR_SUPERIORITY_FACTORS.get('Air Superiority',
+                                                     'Mobility (m_yd)')
+                def_my = AIR_SUPERIORITY_FACTORS.get('Air Inferiority',
+                                                     'Mobility (m_yd)')
             else:
-                atk_my = AIRSUPERIORITY_DATA['Air Superiority'][1]
-                def_my = AIRSUPERIORITY_DATA['Air Inferiority'][1]
-            wyga = AIRSUPERIORITY_DATA['Air Superiority'][2] # Artillery
-            wygd = AIRSUPERIORITY_DATA['Air Inferiority'][2] # Artillery
-            wyya = AIRSUPERIORITY_DATA['Air Superiority'][2] # Air
-            wyyd = AIRSUPERIORITY_DATA['Air Inferiority'][2] # Air
-            vya  = AIRSUPERIORITY_DATA['Air Superiority'][2] # Vulnerability
-            vyd  = AIRSUPERIORITY_DATA['Air Inferiority'][2] # Vulnerability
+                atk_my = AIR_SUPERIORITY_FACTORS.get('Air Superiority',
+                                                     'Mobility (m_yw)')
+                def_my = AIR_SUPERIORITY_FACTORS.get('Air Inferiority',
+                                                     'Mobility (m_yw)')
+            wyga = AIR_SUPERIORITY_FACTORS.get('Air Superiority',
+                                                     'Artillery (w_yg)')
+            wygd = AIR_SUPERIORITY_FACTORS.get('Air Inferiority',
+                                                     'Artillery (w_yg)')
+            wyya = AIR_SUPERIORITY_FACTORS.get('Air Superiority',
+                                                     'Air (w_yy)')
+            wyyd = AIR_SUPERIORITY_FACTORS.get('Air Inferiority',
+                                                     'Air (w_yy)')
+            vya  = AIR_SUPERIORITY_FACTORS.get('Air Superiority',
+                                                     'Vulnerability (v_y)')
+            vyd  = AIR_SUPERIORITY_FACTORS.get('Air Inferiority',
+                                                     'Vulnerability (v_y)')
         elif battleData['airsuperiority'] == 'Air Inferiority':
             if hwy > 0.5:
-                atk_my = AIRSUPERIORITY_DATA['Air Inferiority'][0]
-                def_my = AIRSUPERIORITY_DATA['Air Superiority'][0]
+                atk_my = AIR_SUPERIORITY_FACTORS.get('Air Inferiority',
+                                                     'Mobility (m_yd)')
+                def_my = AIR_SUPERIORITY_FACTORS.get('Air Superiority',
+                                                     'Mobility (m_yd)')
             else:
-                atk_my = AIRSUPERIORITY_DATA['Air Inferiority'][1]
-                def_my = AIRSUPERIORITY_DATA['Air Superiority'][1]
-            wyga = AIRSUPERIORITY_DATA['Air Inferiority'][2] # Artillery
-            wygd = AIRSUPERIORITY_DATA['Air Superiority'][2] # Artillery
-            wyya = AIRSUPERIORITY_DATA['Air Inferiority'][2] # Air
-            wyyd = AIRSUPERIORITY_DATA['Air Superiority'][2] # Air
-            vya  = AIRSUPERIORITY_DATA['Air Inferiority'][2] # Vulnerability
-            vyd  = AIRSUPERIORITY_DATA['Air Superiority'][2] # Vulnerability
+                atk_my = AIR_SUPERIORITY_FACTORS.get('Air Inferiority',
+                                                     'Mobility (m_yw)')
+                def_my = AIR_SUPERIORITY_FACTORS.get('Air Superiority',
+                                                     'Mobility (m_yw)')
+            wyga = AIR_SUPERIORITY_FACTORS.get('Air Inferiority',
+                                                     'Artillery (w_yg)')
+            wygd = AIR_SUPERIORITY_FACTORS.get('Air Superiority',
+                                                     'Artillery (w_yg)')
+            wyya = AIR_SUPERIORITY_FACTORS.get('Air Inferiority',
+                                                     'Air (w_yy)')
+            wyyd = AIR_SUPERIORITY_FACTORS.get('Air Superiority',
+                                                     'Air (w_yy)')
+            vya  = AIR_SUPERIORITY_FACTORS.get('Air Inferiority',
+                                                     'Vulnerability (v_y)')
+            vyd  = AIR_SUPERIORITY_FACTORS.get('Air Superiority',
+                                                     'Vulnerability (v_y)')
         else:
             if hwy > 0.5:
-                atk_my = AIRSUPERIORITY_DATA['Air Equality'][0]
-                def_my = AIRSUPERIORITY_DATA['Air Equality'][0]
+                atk_my = AIR_SUPERIORITY_FACTORS.get('Air Equality',
+                                                     'Mobility (m_yd)')
+                def_my = AIR_SUPERIORITY_FACTORS.get('Air Equality',
+                                                     'Mobility (m_yd)')
             else:
-                atk_my = AIRSUPERIORITY_DATA['Air Equality'][1]
-                def_my = AIRSUPERIORITY_DATA['Air Equality'][1]
-            wyga = AIRSUPERIORITY_DATA['Air Equality'][2] # Artillery
-            wygd = AIRSUPERIORITY_DATA['Air Equality'][2] # Artillery
-            wyya = AIRSUPERIORITY_DATA['Air Equality'][2] # Air
-            wyyd = AIRSUPERIORITY_DATA['Air Equality'][2] # Air
-            vya  = AIRSUPERIORITY_DATA['Air Equality'][2] # Vulnerability
-            vyd  = AIRSUPERIORITY_DATA['Air Equality'][2] # Vulnerability
+                atk_my = AIR_SUPERIORITY_FACTORS.get('Air Equality',
+                                                     'Mobility (m_yw)')
+                def_my = AIR_SUPERIORITY_FACTORS.get('Air Equality',
+                                                     'Mobility (m_yw)')
+            wyga = AIR_SUPERIORITY_FACTORS.get('Air Equality',
+                                                     'Artillery (w_yg)')
+            wygd = AIR_SUPERIORITY_FACTORS.get('Air Equality',
+                                                     'Artillery (w_yg)')
+            wyya = AIR_SUPERIORITY_FACTORS.get('Air Equality',
+                                                     'Air (w_yy)')
+            wyyd = AIR_SUPERIORITY_FACTORS.get('Air Equality',
+                                                     'Air (w_yy)')
+            vya  = AIR_SUPERIORITY_FACTORS.get('Air Equality',
+                                                     'Vulnerability (v_y)')
+            vyd  = AIR_SUPERIORITY_FACTORS.get('Air Equality',
+                                                     'Vulnerability (v_y)')
 
         # Era factor:
         JFactor = 15 # 20 for WW2, 15 for 1970s
@@ -297,18 +366,25 @@ class Wargame:
         PRatio = atk_P / def_P
 
         # calculate casualty factors
-        ca_power    = np.interp(PRatio, OP_RATIO, OP_FACTOR) # power ratio factor for casualties
-        cd_power    = np.interp(1/PRatio, OP_RATIO, OP_FACTOR) # power ratio factor for casualties
-        ca_strength = np.interp(Na, STR_PERS, STR_PERS_FACTOR) # personnel strength factor for casualties
-        cd_strength = np.interp(Nd, STR_PERS, STR_PERS_FACTOR) # personnel strength factor for casualties
-        ca_arm      = np.interp(Nia, STR_ARM, STR_ARM_FACTOR) # armour strength factor for casualties
-        cd_arm      = np.interp(Nid, STR_ARM, STR_ARM_FACTOR) # armour strength factor for casualties
-
-        ca  = 0.028 * rc * hc * uca * ca_strength * ca_power # TODO - factor in Attrition is 0.04, 0.028 in NPW, why?
+        # power ratio factor for casualties
+        ca_power    = OPPOSITION_FACTORS.interpolate(PRatio)
+        # power ratio factor for casualties
+        cd_power    = OPPOSITION_FACTORS.interpolate(1/PRatio)
+        # personnel strength factor for casualties
+        ca_strength = STRENGTH_SIZE_FACTORS.interp(Na)
+        # personnel strength factor for casualties
+        cd_strength = STRENGTH_SIZE_FACTORS.interp(Nd)
+        # armour strength factor for casualties
+        ca_arm      = STRENGTH_SIZE_ARMOUR_FACTORS.interp(Nia)
+        # armour strength factor for casualties
+        cd_arm      = STRENGTH_SIZE_ARMOUR_FACTORS.interp(Nid)
+        ca  = 0.028 * rc * hc * uca * ca_strength * ca_power
+        # TODO - factor in Attrition is 0.04, 0.028 in NPW, why?
         cia = ca * 6.0 * ca_arm * float(battleData['defcev'])
         cga = ca * float(battleData['defcev'])
 
-        cd  = 0.015 * rc * hc * ucd * cd_strength * cd_power * su_c # TODO - factor in Attrition is 0.04, 0.015 in NPW, why?
+        cd  = 0.015 * rc * hc * ucd * cd_strength * cd_power * su_c
+        # TODO - factor in Attrition is 0.04, 0.015 in NPW, why?
         cid = cd * 3.0 * cd_arm * su_ct * float(battleData['atkcev'])
         cgd = cd * float(battleData['atkcev'])
 

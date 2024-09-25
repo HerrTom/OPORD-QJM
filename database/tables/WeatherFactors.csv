@@ -1,4 +1,4 @@
-Weather,Mobility (hm),Attack (Hua),Artillery (hwg),Air (hwy),Tanks (hwt),Casualties (h_c)
+Weather,Mobility (h_m),Attack (h_ua),Artillery (h_wg),Air (h_wy),Tanks (h_wt),Casualties (h_c)
 Dry - Sunshine- Extreme Heat,0.9,1,1,1,0.9,0.8
 Dry - Sunshine - Temperate,1,1,1,1,1,1
 Dry - Sunshine - Extreme Cold,0.9,0.9,0.9,1,0.9,0.7
