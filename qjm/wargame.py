@@ -324,12 +324,12 @@ class Wargame:
         # Era factor:
         JFactor = 15 # 20 for WW2, 15 for 1970s
         # Attacker strength calculation
-        atk_S = ((atk_oli['Ws'] + atk_oli['Wmg'] + atk_oli['Whw']) * rn) + (atk_oli['Ws'] * rn) + \
+        atk_S = ((atk_oli['Ws'] + atk_oli['Wmg'] + atk_oli['Whw']) * rn) + (atk_oli['Wgi'] * rn) + \
                 ((atk_oli['Wg'] + atk_oli['Wgy']) * (rwg * hwg * zwg * wyga)) + \
                 (atk_oli['Wi'] * rwi * hwi) + (atk_oli['Wy'] * rwy * hwy * zwy * wyya)
         
         # Defender strength calculation
-        def_S = ((def_oli['Ws'] + def_oli['Wmg'] + def_oli['Whw']) * rn) + (def_oli['Ws'] * rn) + \
+        def_S = ((def_oli['Ws'] + def_oli['Wmg'] + def_oli['Whw']) * rn) + (def_oli['Wgi'] * rn) + \
                 ((def_oli['Wg'] + def_oli['Wgy']) * (rwg * hwg * zwg * wygd)) + \
                 (def_oli['Wi'] * rwi * hwi) + (def_oli['Wy'] * rwy * hwy * zwy * wyyd)
 

@@ -3,6 +3,8 @@ import yaml
 import numpy as np
 import logging
 
+from qjm import EquipmentOLICategory
+
 GLOBAL_DISPERSION = 4000
 
 # load in interpolation arrays
@@ -30,32 +32,48 @@ class Weapon:
             data = yaml.full_load(f)
 
         # raw data read in from yml data
-        self.name = data['name']
-        self.category = data['category']
-        self.crew = data['crew']
-        self.d_calibre = data['calibre'] # calibre in mm of weapon
-        self.d_ROF_type = data['rof_type']  # one of six options:
-                                        # crewed; handheld; aircraft; calibre; mortar;
-        self.d_weap_type = data['weap_type']  # type of weapon, can be:
-                                              # gun, mortar, missile, bomb
-        self.d_ROF = data['ROF']    # Rate of fire (cyclic per minute)
-        self.d_PTS = data['PTS']    # if 0, use calibre calculation
-        self.d_RIE = data['RIE']    # relative incapacitation, usually 1 except
-                                    # for small arms - 0.8 seems normal for most rifles
-        self.d_eff_range = data['eff_range']
-        self.d_muzzle_vel = data['muzzle_vel']
-        self.d_accuracy = data['accuracy']
-        self.d_reliability = data['reliability']
-        self.d_sp_arty = data['sp_arty']
-        self.d_missile_guidance = data['guidance']  # Guided can be no, beam, wire, command, radar
-        self.d_barrels = data['barrels']
-        self.d_charges = data['arty_charges']
+        self.name = data.get('name', 'Unknown')
+        self.category = data.get('category', 'Unknown')
+        self.description = data.get('description', 'No Description')
+        self.crew = data.get('crew', 0)
+        self.d_calibre = data.get('calibre', 0)  # calibre in mm of weapon
+        self.d_weap_type = data.get('weap_type', 'unknown')  # type of weapon, can be:
+                         # gun, mortar, missile, bomb
+        self.d_ROF_type = data.get('rof_type', 'unknown')  # one of six options:
+                       # crewed; handheld; aircraft; calibre; mortar;
+        self.d_ROF = data.get('ROF', 0)  # Rate of fire (cyclic per minute)
+        self.d_PTS = data.get('PTS', 0)  # if 0, use calibre calculation
+        self.d_RIE = data.get('RIE', 1)  # relative incapacitation, usually 1 except
+                 # for small arms - 0.8 seems normal for most rifles
+        self.d_eff_range = data.get('eff_range', 0)
+        self.d_muzzle_vel = data.get('muzzle_vel', 0)
+        self.d_accuracy = data.get('accuracy', 0)
+        self.d_reliability = data.get('reliability', 0)
+        self.d_sp_arty = data.get('sp_arty', 'none') 
+        self.d_missile_guidance = data.get('guidance', 'no')  # Guided can be no, beam, wire, command, radar
+        self.d_barrels = data.get('barrels', 1)
+        self.d_charges = data.get('arty_charges', 0)
 
-        # safe loading of a description
-        if 'description' in data:
-            self.description = data['description']
+        # set the OLI category
+        if self.category == 'small arms':
+            self.oli_category = EquipmentOLICategory.small_arms
+        elif self.category == 'machine gun':
+            self.oli_category = EquipmentOLICategory.machine_gun
+        elif self.category == 'heavy weapon':
+            self.oli_category = EquipmentOLICategory.heavy_weapon
+        elif self.category == 'antitank':
+            self.oli_category = EquipmentOLICategory.antitank
+        elif self.category == 'artillery':
+            self.oli_category = EquipmentOLICategory.artillery
+        elif self.category == 'antiair':
+            self.oli_category = EquipmentOLICategory.antiair
+        elif self.category == 'armour':
+            self.oli_category = EquipmentOLICategory.armour
+        elif self.category == 'aircraft':
+            self.oli_category = EquipmentOLICategory.aircraft
         else:
-            self.description = 'No Description'
+            self.oli_category = EquipmentOLICategory.unknown
+            logging.error(f'Weapon {self.name} has unknown category {self.category}')
 
         # calculated values
         if self.d_ROF_type == 'crewed':

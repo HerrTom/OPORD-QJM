@@ -9,6 +9,7 @@ from .enums import ElementStatus
 from .exceptions import DuplicateIDError
 from .lin import LIN
 from .element import Personnel, Vehicle
+from qjm import FormationOLI
 
 
 class Formation:
@@ -58,6 +59,36 @@ class Formation:
     def copy_toe(self, name, shortname, toe, nsns):
         return Formation(name, shortname, self.shortname, toe, nsns)
     
+    def add_qjm_weapons(self, equipment_db):
+        """ Assign QJM equipment to all personnel and vehicles in the formation. """
+        for veh in self.vehicles:
+            veh.assign_qjm_equipment(equipment_db)
+            for crew in veh.crew:
+                crew.assign_qjm_equipment(equipment_db)
+        for weap in self.personnel:
+            weap.assign_qjm_equipment(equipment_db)
+
+        for sub in self.subunits:
+            sub.add_qjm_weapons(equipment_db)
+
+    def get_oli(self,):
+        # returns OLI statistics about formation
+        oli = {'Ws': 0, 'Wmg': 0, 'Whw': 0, 'Wgi': 0,
+                'Wg': 0, 'Wgy': 0, 'Wi': 0, 'Wy': 0}
+        for veh in self.vehicles:
+            oli['Wg'] += 1
+            oli['Wy'] += 1
+        for pers in self.personnel:
+            oli['Wi'] += 1
+        for sub in self.subunits:
+            oli_sub = sub.get_oli()
+            for key in oli_sub:
+                oli[key] += oli_sub[key]
+        return oli
+
+    def inflict_losses(self, ca, cia, cga, attacker=True):
+        pass
+    
     def get_all_equipment(self,):
         all_equipment = []
         # add subunit equipment
@@ -101,13 +132,21 @@ class Formation:
     
     def count_equipment(self,):
         equipment = {}
-
+        # TODO: Need to get equipment by type
         return equipment
     
     def get_oli(self,):
         # returns OLI statistics about formation
-        oli = {'Ws': 0, 'Wmg': 0, 'Whw': 0, 'Wgi': 0,
-                'Wg': 0, 'Wgy': 0, 'Wi': 0, 'Wy': 0}
+        oli = FormationOLI()  # Default is all zeros
+        for veh in self.vehicles:
+            oli += veh.get_oli()
+            for crew in veh.crew:
+                oli += crew.get_oli()
+        for pers in self.personnel:
+            logging.debug(f'{pers.name} has OLI {pers.get_oli()}')
+            oli += pers.get_oli()
+        for sub in self.subunits:
+            oli += sub.get_oli()
         return oli
 
 class TOE:
@@ -457,23 +496,3 @@ class TOE_Database:
         # write the new file
         with open(filename, 'w+') as f:
             f.write(json.dumps(orbatmapper, indent=2))
-
-
-if __name__ == '__main__':
-    db = TOE_Database()
-    db.load_database()    
-    print('--------------------------------------')
-    unit_nsns = ['MPi-KM', 'MPi-KMS', 'BMP-1', 'T-55A', 'ZSU-23-4V', '9K35 Strela-10']
-    MSR_332 = Formation('332 Motor Rifle Regiment', '332', 'EG', db.get_TOE('TOEEG020001'), unit_nsns)
-    MSR_332_equip = MSR_332.get_all_equipment()
-    eq = {}
-    for e in MSR_332_equip:
-        if e.item_entries[0] not in eq:
-            eq[e.item_entries[0]] = 1
-        else:
-            eq[e.item_entries[0]] += 1
-    print(eq)
-    print(MSR_332.count_personnel())
-    db.to_orbatmapper('toe.json',
-                      toe_ids=['TOEEG020001', 'TOEEG020002', 'TOEEG020003', 'TOEWG000005'],
-                      units=[MSR_332])

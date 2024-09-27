@@ -3,6 +3,9 @@ import yaml
 import numpy as np
 import logging
 
+from qjm import EquipmentOLICategory, VehicleCategory
+
+
 # load in interpolation arrays
 RFE_ROF = []
 RFE_RF = []
@@ -26,27 +29,69 @@ class Vehicle:
         with open(file) as f:
             data = yaml.full_load(f)
 
-        self.name = data['name']
-        self.crew = data['crew']
-        self.vehicle_type = data['vehicle_type']
-        self.category = data['category']
-        self.d_sp_arty = None # to solve error in casualty calculation
-        d_weapons = data['weapons']
-        d_speed = data['speed']
-        d_range = data['op_range']
-        d_weight = data['weight']
-        d_FCE = data['fce']
-        d_ammo = data['ammo']
-        d_wheel = data['mobility']
-        d_amphibious = data['amphibious']
-        d_ceiling = data['ceiling']
+        self.name = data.get('name', 'Unknown')
+        self.description = data.get('description', 'No Description')
+        self.crew = data.get('crew', 0)
+        self.vehicle_type = data.get('vehicle_type', 'unknown')
+        self.category = data.get('category', 'unknown')
+        self.d_sp_arty = None  # to solve error in casualty calculation
+        d_weapons = data.get('weapons', [])
+        d_speed = data.get('speed', 0)
+        d_range = data.get('op_range', 0)
+        d_weight = data.get('weight', 0)
+        d_FCE = data.get('fce', 0)
+        d_ammo = data.get('ammo', 0)
+        d_wheel = data.get('mobility', 'unknown')
+        d_amphibious = data.get('amphibious', 'unknown')
+        d_ceiling = data.get('ceiling', 0)
 
-        # safe loading of a description
-        if 'description' in data:
-            self.description = data['description']
+        # set the OLI category
+        if self.category == 'small arms':
+            self.oli_category = EquipmentOLICategory.small_arms
+        elif self.category == 'machine gun':
+            self.oli_category = EquipmentOLICategory.machine_gun
+        elif self.category == 'heavy weapon':
+            self.oli_category = EquipmentOLICategory.heavy_weapon
+        elif self.category == 'antitank':
+            self.oli_category = EquipmentOLICategory.antitank
+        elif self.category == 'artillery':
+            self.oli_category = EquipmentOLICategory.artillery
+        elif self.category == 'antiair':
+            self.oli_category = EquipmentOLICategory.antiair
+        elif self.category == 'armour':
+            self.oli_category = EquipmentOLICategory.armour
+        elif self.category == 'aircraft':
+            self.oli_category = EquipmentOLICategory.aircraft
         else:
-            self.description = 'No Description'
+            self.oli_category = EquipmentOLICategory.unknown
+            logging.error(f'Weapon {self.name} has unknown category {self.category}')
 
+        # set the vehicle category
+        if self.vehicle_type == 'tank':
+            self.qjm_vehicle_category = VehicleCategory.tank
+        elif self.vehicle_type == 'armoured car':
+            self.qjm_vehicle_category = VehicleCategory.armoured_car
+        elif self.vehicle_type == 'truck':
+            self.qjm_vehicle_category = VehicleCategory.truck
+        elif self.vehicle_type == 'artillery':
+            self.qjm_vehicle_category = VehicleCategory.artillery
+        elif self.vehicle_type == 'arv':
+            self.qjm_vehicle_category = VehicleCategory.arv
+        elif self.vehicle_type == 'ifv':
+            self.qjm_vehicle_category = VehicleCategory.ifv
+        elif self.vehicle_type == 'apc':
+            self.qjm_vehicle_category = VehicleCategory.apc
+        elif self.vehicle_type == 'cas':
+            self.qjm_vehicle_category = VehicleCategory.combat_air_support
+        elif self.vehicle_type == 'fighter':
+            self.qjm_vehicle_category = VehicleCategory.fighter
+        elif self.vehicle_type == 'bomber':
+            self.qjm_vehicle_category = VehicleCategory.bomber
+        elif self.vehicle_type == 'helicopter':
+            self.qjm_vehicle_category = VehicleCategory.helicopter
+        else:
+            self.qjm_vehicle_category = VehicleCategory.unknown
+            logging.error(f'Vehicle {self.name} has unknown category {self.vehicle_type}')
 
         # calculated values
         # sum up weapon values
