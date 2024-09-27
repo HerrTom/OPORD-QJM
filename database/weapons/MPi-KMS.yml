@@ -1,0 +1,17 @@
+name: MPi-KMS
+category: small arms  # can be small arm, machine gun, heavy weapon, antitank, armour, artillery, close air support, or antiair
+crew: 1 # crew is only counted if a weapon is used directly
+calibre: 7.62
+rof_type: handheld
+weap_type: gun
+barrels: 1
+ROF: 600
+PTS: 1
+RIE: 0.8
+eff_range: 350
+muzzle_vel: 715
+accuracy: 0.82
+reliability: 0.9
+guidance: none
+sp_arty: none
+arty_charges: 0

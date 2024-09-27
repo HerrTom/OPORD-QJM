@@ -1,5 +1,6 @@
 # Specific to this project
 toe.json
+debug.log
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
