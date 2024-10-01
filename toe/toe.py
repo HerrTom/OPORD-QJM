@@ -86,8 +86,14 @@ class Formation:
                 oli[key] += oli_sub[key]
         return oli
 
-    def inflict_losses(self, ca, cia, cga, attacker=True):
-        pass
+    def inflict_losses(self, cr):
+        """ Inflict casualties on the formation based on the casualty rates. """
+        for veh in self.vehicles:
+            veh.test_casualty(cr)
+        for pers in self.personnel:
+            pers.test_casualty(cr)
+        for sub in self.subunits:
+            sub.inflict_losses(cr)
     
     def get_all_equipment(self,):
         all_equipment = []
@@ -148,6 +154,7 @@ class Formation:
         for sub in self.subunits:
             oli += sub.get_oli()
         return oli
+
 
 class TOE:
     def __init__(self, name: str, nation: str, sidc: str, toe_id: str,
@@ -334,30 +341,32 @@ class TOE_Database:
         equip = []
         equip_dict = {}
         for el in toe_entry.personnel:
-            if el.assigned_equipment is None:
-                for eq in el.equipment:
-                    eq_item = eq.name
-                    if eq_item in equip_dict:
-                        equip_dict[eq_item] += 1
-                    else:
-                        equip_dict[eq_item] = 1
-            else:
-                for eq in el.assigned_equipment:
-                    if eq in equip_dict:
-                        equip_dict[eq] += 1
-                    else:
-                        equip_dict[eq] = 1
+            if el.status == ElementStatus.ACTIVE or el.status == ElementStatus.UNDEFINED:
+                if el.assigned_equipment is None:
+                    for eq in el.equipment:
+                        eq_item = eq.name
+                        if eq_item in equip_dict:
+                            equip_dict[eq_item] += 1
+                        else:
+                            equip_dict[eq_item] = 1
+                else: # this should be a standard formation
+                    for eq in el.assigned_equipment:
+                        if eq in equip_dict:
+                            equip_dict[eq] += 1
+                        else:
+                            equip_dict[eq] = 1
 
         # add crewed equipment
         for veh in toe_entry.vehicles:
-            if veh.assigned_equipment is None:
-                eq_item = veh.equipment.name
-            else:
-                eq_item = veh.assigned_equipment[0]
-            if eq_item in equip_dict:
-                equip_dict[eq_item] += 1
-            else:
-                equip_dict[eq_item] = 1
+            if veh.status == ElementStatus.ACTIVE or veh.status == ElementStatus.UNDEFINED:
+                if veh.assigned_equipment is None:
+                    eq_item = veh.equipment.name
+                else:
+                    eq_item = veh.assigned_equipment[0]
+                if eq_item in equip_dict:
+                    equip_dict[eq_item] += 1
+                else:
+                    equip_dict[eq_item] = 1
                 
         for eq in equip_dict:
             equip.append({'name': eq,
@@ -367,18 +376,20 @@ class TOE_Database:
         personnel = []
         personnel_dict = {}
         for pers in toe_entry.personnel:
-            rank = pers.rank
-            if rank in personnel_dict:
-                personnel_dict[rank] += 1
-            else:
-                personnel_dict[rank] = 1
-        for veh in toe_entry.vehicles:
-            for crew in veh.crew:
-                rank = crew.rank
+            if pers.status == ElementStatus.ACTIVE or pers.status == ElementStatus.UNDEFINED:
+                rank = pers.rank
                 if rank in personnel_dict:
                     personnel_dict[rank] += 1
                 else:
                     personnel_dict[rank] = 1
+        for veh in toe_entry.vehicles:
+            for crew in veh.crew:
+                if crew.status == ElementStatus.ACTIVE or crew.status == ElementStatus.UNDEFINED:
+                    rank = crew.rank
+                    if rank in personnel_dict:
+                        personnel_dict[rank] += 1
+                    else:
+                        personnel_dict[rank] = 1
         for rank in personnel_dict:
             personnel.append({'name': rank,
                               'count': personnel_dict[rank]})

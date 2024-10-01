@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, redirect
 from flask_socketio import SocketIO, emit
 import socket
 import json
@@ -21,8 +21,11 @@ def qjm_setup():# Communicate with qjm.py to get formation data
 @app.route('/load_scenario', methods=['POST'])
 def load_scenario():
     scenario_name = request.json.get('scenario')
-    wargame.load_scenario(scenario_name)
-    return jsonify({'status': 'scenario loaded'})
+    loaded = wargame.load_scenario(scenario_name)
+    if loaded:
+        return redirect("/qjm/", code=302)
+    else:
+        return jsonify({'error': 'Scenario not found'}), 404
 
 @app.route("/qjm/get_units", methods=['GET'])
 def get_units():

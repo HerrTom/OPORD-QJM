@@ -50,8 +50,11 @@ class Wargame:
         # update scenario string to subdirectory
         scenario = './wargames/' + scenario
         # load the scenario
-        with open(scenario+'/wargame.yml') as f:
-            wargameRules = yaml.full_load(f)
+        try:
+            with open(scenario+'/wargame.yml') as f:
+                wargameRules = yaml.full_load(f)
+        except FileNotFoundError:
+            return False
         colors = wargameRules['factions']
         self.dispersion = wargameRules['dispersion_factor']
         # load formations
@@ -65,6 +68,7 @@ class Wargame:
                 self.formations[form.faction].append(form)
             self.formationsByName.update({form.name: form})
             self.formationsById.update({form.id: form})
+        return True
 
     def get_formations(self):
         response = []
@@ -420,35 +424,3 @@ class Wargame:
                              'defTankCasualtyRate': cid,
                             }
             return battleResults
-        
-        
-
-
-def handle_client_connection(client_socket):
-    data = client_socket.recv(1024).decode('utf-8')
-    request = json.loads(data)
-
-    wg = Wargame()
-    wg.load_scenario('NextWarPoland') # TODO: Un-hardcode this!
-    logging.info(wg.formations)
-
-    if request['command'] == 'load_formations':
-        response = []
-        for faction in wg.formations:
-            faction_response = {'name': faction, 'units': []}
-            for form in wg.formations[faction]:
-                id = str(uuid1())
-                faction_response['units'].append({'id': id, 'name': form.name, 'sidc': form.sidc, 'color': form.color})
-            response.append(faction_response)
-        client_socket.sendall(json.dumps(response).encode('utf-8'))
-
-if __name__ == "__main__":
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind(("0.0.0.0", 9999))
-    server.listen(5)  # max backlog of connections
-
-    logging.info("Listening on port 9999")
-    while True:
-        client_sock, address = server.accept()
-        handle_client_connection(client_sock)
-        client_sock.close()

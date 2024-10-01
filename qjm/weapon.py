@@ -3,7 +3,7 @@ import yaml
 import numpy as np
 import logging
 
-from qjm import EquipmentOLICategory
+from qjm import EquipmentOLICategory, VehicleCategory
 
 GLOBAL_DISPERSION = 4000
 
@@ -74,6 +74,9 @@ class Weapon:
         else:
             self.oli_category = EquipmentOLICategory.unknown
             logging.error(f'Weapon {self.name} has unknown category {self.category}')
+
+        # set the vehicle category
+        self.qjm_vehicle_category = VehicleCategory.infantry
 
         # calculated values
         if self.d_ROF_type == 'crewed':

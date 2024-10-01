@@ -8,6 +8,7 @@ class CasualtyRates:
     personnel: float
     armour: float
     artillery: float
+    attacker: bool
 
 
 class FormationOLI:
@@ -41,6 +42,7 @@ class FormationOLI:
 class LossRateFactors:
     """Container for the loss rate factors in a qjm battle resolution."""
     apc = 1.0
+    tanks = 1.0
     infantry_weaps = 1.5
     antitank = 1.0
     fixed_wing = 1.0
@@ -109,6 +111,7 @@ class VehicleCategory(Enum):
     fighter = 'fighter'
     bomber = 'bomber'
     helicopter = 'helicopter'
+    infantry = 'infantry'  # used for crew served weapons typically
     unknown = 'unknown'
 
 

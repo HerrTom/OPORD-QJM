@@ -3,7 +3,8 @@ from random import random
 from .enums import ElementStatus
 from qjm import (EquipmentOLICategory, VehicleCategory,
                    CasualtyRates, LossRateFactors,
-                   RecoveryRatesAttacker, FormationOLI)
+                   RecoveryRatesAttacker, RecoveryRatesDefender,
+                   FormationOLI)
 
 
 class Element:
@@ -106,6 +107,32 @@ class Personnel(Element):
         for e in self.equipment:
             self.assigned_equipment.append(e.assign_equipment(nsns))
 
+    def test_casualty(self, cr):
+        """Test if this personnel is killed or not.
+
+        Args:
+            cr (CasualtyRates): Casualty rates object from the battle resolution
+        """
+        if cr.attacker:
+            rr = RecoveryRatesAttacker()
+        else:
+            rr = RecoveryRatesDefender()
+        
+        # Personnel always just use the CR for personnel
+        cr_total = cr.personnel
+
+        # test if the personnel is hit
+        if random() < cr_total:
+            # personnel is hit
+            if random() < rr.personnel:
+                # personnel is wounded, use DAMAGED for wounded
+                self.status = ElementStatus.DAMAGED
+                logging.debug(f'{self} is wounded')
+            else:
+                # personnel is killed, use DESTROYED for killed
+                self.status = ElementStatus.DESTROYED
+                logging.debug(f'{self} is destroyed')
+
     def __repr__(self):
         return f"Personnel({self.name}. {self.rank})"
 
@@ -142,9 +169,84 @@ class Vehicle(Element):
         Args:
             cr (CasualtyRates): Casualty rates object from the battle resolution
         """
-        roll = random()
-        if roll < cr.armour:
-            self.status = ElementStatus.DESTROYED
-        
+        if cr.attacker:
+            rr = RecoveryRatesAttacker()
+        else:
+            rr = RecoveryRatesDefender()
+        for e in self.qjm_equipment:
+            if e is not None:
+                if e.qjm_vehicle_category == VehicleCategory.tank:
+                    loss_rate_factor = LossRateFactors.tanks
+                    recovery_rate = rr.tanks
+                    cr_total = cr.armour * loss_rate_factor
+                elif e.qjm_vehicle_category == VehicleCategory.armoured_car:
+                    loss_rate_factor = LossRateFactors.apc
+                    recovery_rate = rr.apc
+                    cr_total = cr.personnel * loss_rate_factor
+                elif e.qjm_vehicle_category == VehicleCategory.truck:
+                    loss_rate_factor = LossRateFactors.vehicles
+                    recovery_rate = rr.vehicles
+                    cr_total = cr.personnel * loss_rate_factor
+                elif e.qjm_vehicle_category == VehicleCategory.artillery:
+                    loss_rate_factor = LossRateFactors.artillery_self_propelled
+                    recovery_rate = rr.artillery_self_propelled
+                    cr_total = cr.artillery * loss_rate_factor
+                elif e.qjm_vehicle_category == VehicleCategory.arv:
+                    loss_rate_factor = LossRateFactors.artillery_self_propelled
+                    recovery_rate = rr.vehicles
+                    cr_total = cr.personnel * loss_rate_factor
+                elif e.qjm_vehicle_category == VehicleCategory.ifv:
+                    loss_rate_factor = LossRateFactors.tanks
+                    recovery_rate = rr.tanks
+                    cr_total = cr.armour * loss_rate_factor
+                elif e.qjm_vehicle_category == VehicleCategory.apc:
+                    loss_rate_factor = LossRateFactors.apc
+                    recovery_rate = rr.apc
+                    cr_total = cr.personnel * loss_rate_factor
+                elif e.qjm_vehicle_category == VehicleCategory.combat_air_support:
+                    loss_rate_factor = LossRateFactors.fixed_wing
+                    recovery_rate = rr.fixed_wing
+                    cr_total = cr.personnel * loss_rate_factor
+                elif e.qjm_vehicle_category == VehicleCategory.fighter:
+                    loss_rate_factor = LossRateFactors.fixed_wing
+                    recovery_rate = rr.fixed_wing
+                    cr_total = cr.personnel * loss_rate_factor
+                elif e.qjm_vehicle_category == VehicleCategory.bomber:
+                    loss_rate_factor = LossRateFactors.fixed_wing
+                    recovery_rate = rr.fixed_wing
+                    cr_total = cr.personnel * loss_rate_factor
+                elif e.qjm_vehicle_category == VehicleCategory.helicopter:
+                    loss_rate_factor = LossRateFactors.rotary_wing
+                    recovery_rate = rr.rotary_wing
+                    cr_total = cr.personnel * loss_rate_factor
+                else:
+                    loss_rate_factor = LossRateFactors.infantry_weaps
+                    recovery_rate = rr.infantry_weaps
+                    cr_total = cr.personnel * loss_rate_factor
+            else:
+                # if still not found, log a warning
+                logging.warning(f'{self} qjm equipment {e} not assigned a category! '\
+                                f'Assigned equipment: {self.assigned_equipment}')
+                loss_rate_factor = LossRateFactors.vehicles
+                recovery_rate = rr.vehicles
+                cr_total = cr.personnel * loss_rate_factor
+            
+            # test if the vehicle is hit
+            if random() < cr_total:
+                # vehicle is hit
+                # test if it is destroyed
+                if random() < recovery_rate:
+                    # vehicle is damaged
+                    self.status = ElementStatus.DAMAGED
+                else:
+                    # vehicle is destroyed
+                    self.status = ElementStatus.DESTROYED
+                
+                # Add casualties to the crew of the destroyed vehicle
+                for crew in self.crew:
+                    crew.test_casualty(cr)
+                
+        return self.status
+    
     def __repr__(self):
         return f"Vehicle({self.name})"
