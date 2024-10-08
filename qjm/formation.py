@@ -31,7 +31,7 @@ class Formation():
         self.calc_personnel()
 
 
-        logging.info('Loaded Formation: {:} w/ {:,.0f} personnel @ {:,.0f}'.format(self.name, self.personnel, self.get_OLI()))
+        logging.info(f'Loaded Formation: {self.name} w/ {self.personnel:,.0f} personnel @ {self.get_OLI():,.0f}')
 
     def __repr__(self,):
         return ('Formation({} [{}])'.format(self.name, self.faction))

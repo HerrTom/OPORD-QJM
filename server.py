@@ -8,24 +8,23 @@ from qjm import Wargame
 app = Flask(__name__)
 socketio = SocketIO(app)
 wargame = Wargame()
-wargame.load_scenario('NextWarPoland')
 
 @app.route("/")
 def default_page():
-    return "<a href='./qjm/'>QJM Simulation</a>"
+    return render_template('index.htm')
 
 @app.route("/qjm/")
 def qjm_setup():# Communicate with qjm.py to get formation data
     return render_template('qjm.htm')
 
-@app.route('/load_scenario', methods=['POST'])
-def load_scenario():
-    scenario_name = request.json.get('scenario')
-    loaded = wargame.load_scenario(scenario_name)
+@app.route('/load_scenario/<scenario>')
+def load_scenario(scenario):
+    loaded = wargame.load_scenario(scenario)
     if loaded:
         return redirect("/qjm/", code=302)
     else:
-        return jsonify({'error': 'Scenario not found'}), 404
+        # TODO: Make a better error page
+        return redirect("/", code=302)
 
 @app.route("/qjm/get_units", methods=['GET'])
 def get_units():
@@ -48,6 +47,12 @@ def commit_battle():
     wargame.simulate_battle(data, commit=True)
     return jsonify({'status': 'committed'})
 
+@app.route('/export_orbatmapper', methods=['POST'])
+def export_orbatmapper():
+    status = wargame.export_orbatmapper('toe.json')
+    print(status)
+    return jsonify({'status': status})
+
 @app.route('/get_personnel', methods=['POST'])
 def get_personnel():
     data = request.json
@@ -56,9 +61,9 @@ def get_personnel():
     defenders = 0
     attackers = 0
     for u in data['defenders']:
-        defenders += wargame.formationsById[u].personnel
+        defenders += wargame.formationsById[u].count_personnel()
     for u in data['attackers']:
-        attackers += wargame.formationsById[u].personnel
+        attackers += wargame.formationsById[u].count_personnel()
     return jsonify({'defenders': defenders, 'attackers': attackers})
 
 @app.route('/get_formation/<unit_id>', methods=['GET'])

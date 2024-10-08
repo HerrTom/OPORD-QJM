@@ -6,9 +6,11 @@ from glob import glob
 from uuid import uuid1
 import numpy as np
 
+from toe import Formation, TOE_Database
+
 from .weapon import Weapon
 from .vehicle import Vehicle
-from .formation import Formation
+from .equipment_database import EquipmentDatabase
 from .factors import (
     TERRAIN_FACTORS,
     WEATHER_FACTORS,
@@ -19,34 +21,40 @@ from .factors import (
     OPPOSITION_FACTORS,
     STRENGTH_SIZE_FACTORS,
     STRENGTH_SIZE_ARMOUR_FACTORS)
+from .qjm_data_classes import (CasualtyRates,
+                               FormationOLI,
+                               EquipmentOLICategory,
+                               VehicleCategory)
 
+
+# Setup debug logging to an empty file
+logging.basicConfig(filename='debug.log', level=logging.DEBUG)
+with open('debug.log', 'w') as f:
+    f.write('')
+
+
+GLOBAL_TOE_DATABASE = TOE_Database()
+GLOBAL_TOE_DATABASE.load_database()
 
 class Wargame:
     def __init__(self):
         # import the database info
-        weapfiles = glob('./database/weapons/*.yml')
-        weapons = []
-        for f in weapfiles:
-            weapons.append(Weapon(f))
-
-        vehfiles = glob('./database/vehicles/*.yml')
-        vehicles = []
-        for f in vehfiles:
-            vehicles.append(Vehicle(f, weapons))
-
-        # create a dict for the weapons
-        self.weapDict = {}
-        for w in weapons:
-            self.weapDict.update({w.name: w})
-        for v in vehicles:
-            self.weapDict.update({v.name: v})
+        self.equipment_database = EquipmentDatabase('./database/weapons', './database/vehicles')
         
         # init the formation container
         self.formations = {}
         self.formationsByName = {}
         self.formationsById = {}
+
+        # flag for scenario loading
+        self.scenario_loaded = False
     
     def load_scenario(self, scenario):
+        if self.scenario_loaded:
+            # clear the formations
+            self.formations = {}
+            self.formationsByName = {}
+            self.formationsById = {}
         # update scenario string to subdirectory
         scenario = './wargames/' + scenario
         # load the scenario
@@ -54,12 +62,25 @@ class Wargame:
             with open(scenario+'/wargame.yml') as f:
                 wargameRules = yaml.full_load(f)
         except FileNotFoundError:
+            logging.error(f'Scenario {scenario} not found')
             return False
-        colors = wargameRules['factions']
+        factions = wargameRules['factions']
+        colors = [factions[x]['color'] for x in factions]
         self.dispersion = wargameRules['dispersion_factor']
         # load formations
         for f in glob(scenario+'/formations/**/*.yml', recursive=True):
-            form = Formation(f, self.weapDict)
+            # Extract parameters from yaml file for better readability
+            with open(f, 'r', encoding='utf-8') as g:
+                data = yaml.safe_load(g)
+            name = str(data.get('name', 'Unknown'))
+            shortname = str(data.get('shortname', '!'))
+            toe = str(data.get('toe', None))
+            nsns = data.get('nsns', [])
+            position = data.get('position', None)
+            faction = data.get('faction', 'Unknown')
+            form = Formation(name, shortname, position, GLOBAL_TOE_DATABASE.get_TOE(toe),
+                             nsns, faction)
+            form.add_qjm_weapons(self.equipment_database)
             if form.faction in colors:
                 form.color = colors[form.faction]
             if form.faction not in self.formations:
@@ -68,16 +89,25 @@ class Wargame:
                 self.formations[form.faction].append(form)
             self.formationsByName.update({form.name: form})
             self.formationsById.update({form.id: form})
+            print(self.formations)
+            self.scenario_loaded = True
         return True
 
     def get_formations(self):
         response = []
         for faction in self.formations:
+            print(faction)
             faction_response = {'name': faction, 'units': []}
             for form in self.formations[faction]:
                 faction_response['units'].append({'id': form.id, 'name': form.name, 'sidc': form.sidc, 'color': form.color})
             response.append(faction_response)
         return response
+    
+    def export_orbatmapper(self, filename):
+        """Exports the current scenario to Orbatmapper format."""
+        units = [self.formationsById[x] for x in self.formationsById]
+        GLOBAL_TOE_DATABASE.to_orbatmapper(filename, units=units)
+        return True
     
     def simulate_battle(self, battleData, commit=False):
         """Simulates the battle using the QJM method.
@@ -93,10 +123,8 @@ class Wargame:
 
         # calculate force strength
         # S = ((Ws + Wmg + Whw) * r_n) + (Wgi * rn) + ((Wg + Wgy) * (rwg * hwg * zwg * wyg)) + (Wi * rwi * hwi) + (Wy * rwy * hwy * zyw * wyy)
-        atk_oli = {'Ws': 0, 'Wmg': 0, 'Whw': 0, 'Wgi': 0,
-                   'Wg': 0, 'Wgy': 0, 'Wi': 0, 'Wy': 0}
-        def_oli = {'Ws': 0, 'Wmg': 0, 'Whw': 0, 'Wgi': 0,
-                   'Wg': 0, 'Wgy': 0, 'Wi': 0, 'Wy': 0}
+        atk_oli = FormationOLI()
+        def_oli = FormationOLI()
         
         Na = 0 # personnel strength
         Nd = 0 # personnel strength
@@ -112,66 +140,75 @@ class Wargame:
         
         # gather OLI values from each formation
         for a in atk_land_units:
-            oli = self.formationsById[a].get_OLI()
-            for cat in oli:
-                atk_oli[cat] += oli[cat]
+            atk_oli += self.formationsById[a].get_oli()
             # calculate Na
-            Na += self.formationsById[a].personnel
+            Na += self.formationsById[a].count_personnel()
             # Calculate Ja
-            for equip in self.formationsById[a].equipment:
+            for equip in self.formationsById[a].get_qjm_equipment():
                 if type(equip) == Vehicle:
-                    equip_num = self.formationsById[a].equipment[equip][1]
-                    if equip.vehicle_type in ['armoured car', 'truck', 'arv']:
-                        Ja += equip_num * J_unarmoured
-                    elif equip.vehicle_type in ['apc', 'ifv', 'artillery']:
-                        Ja += equip_num * J_armoured
-                    elif equip.vehicle_type in ['cas', 'fighter', 'bomber', 'helicopter']:
+                    if equip.qjm_vehicle_category in [VehicleCategory.armoured_car,
+                                                      VehicleCategory.truck,
+                                                      VehicleCategory.arv]:
+                        Ja += J_unarmoured
+                    elif equip.qjm_vehicle_category in [VehicleCategory.apc,
+                                                 VehicleCategory.ifv,
+                                                 VehicleCategory.artillery]:
+                        Ja += J_armoured
+                    elif equip.qjm_vehicle_category in [VehicleCategory.combat_air_support,
+                                                 VehicleCategory.fighter,
+                                                 VehicleCategory.bomber,
+                                                 VehicleCategory.helicopter]:
                         # only count organic aviation assets
-                        Ja += equip_num * J_air
-                    elif equip.vehicle_type in ['tank']:
-                        Nia += equip_num
+                        Ja += J_air
+                    elif equip.qjm_vehicle_category in [VehicleCategory.tank]:
+                        Nia += 1
  
         for d in def_land_units:
-            oli = self.formationsById[d].get_OLI()
-            for cat in oli:
-                def_oli[cat] += oli[cat]
-            # calculate Na
-            Nd += self.formationsById[d].personnel
-            # Calculate Ja
-            for equip in self.formationsById[d].equipment:
+            oli = self.formationsById[d].get_oli()
+            def_oli += oli
+            # calculate Nd
+            Nd += self.formationsById[d].count_personnel()
+            # Calculate Jd
+            for equip in self.formationsById[a].get_qjm_equipment():
+                print(equip)
                 if type(equip) == Vehicle:
-                    equip_num = self.formationsById[d].equipment[equip][1]
-                    if equip.vehicle_type in ['armoured car', 'truck', 'arv']:
-                        Jd += equip_num * J_unarmoured
-                    elif equip.vehicle_type in ['apc', 'ifv', 'artillery']:
-                        Jd += equip_num * J_armoured
-                    elif equip.vehicle_type in ['cas', 'fighter', 'bomber', 'helicopter']:
+                    if equip.qjm_vehicle_category in [VehicleCategory.armoured_car,
+                                                      VehicleCategory.truck,
+                                                      VehicleCategory.arv]:
+                        Jd += J_unarmoured
+                    elif equip.qjm_vehicle_category in [VehicleCategory.apc,
+                                                 VehicleCategory.ifv,
+                                                 VehicleCategory.artillery]:
+                        Jd += J_armoured
+                    elif equip.qjm_vehicle_category in [VehicleCategory.combat_air_support,
+                                                 VehicleCategory.fighter,
+                                                 VehicleCategory.bomber,
+                                                 VehicleCategory.helicopter]:
                         # only count organic aviation assets
-                        Jd += equip_num * J_air
-                    elif equip.vehicle_type in ['tank']:
-                        Nid += equip_num
-
+                        Jd += J_air
+                    elif equip.qjm_vehicle_category in [VehicleCategory.tank]:
+                        Nid += 1
         # correct values of antitank, antiaircraft, and aircraft by enemy values
-        if atk_oli['Wgi'] > def_oli['Wi']:
-            atk_oli['Wgi'] = def_oli['Wi'] + 0.5 * (atk_oli['Wgi'] - def_oli['Wi'])
-        if def_oli['Wgi'] > def_oli['Wi']:
-            def_oli['Wgi'] = atk_oli['Wi'] + 0.5 * (def_oli['Wgi'] - atk_oli['Wi'])
-        if atk_oli['Wgy'] > def_oli['Wy']:
-            atk_oli['Wgy'] = def_oli['Wy'] + 0.5 * (atk_oli['Wgy'] - def_oli['Wy'])
-        if def_oli['Wgy'] > def_oli['Wy']:
-            def_oli['Wgy'] = atk_oli['Wy'] + 0.5 * (def_oli['Wgy'] - atk_oli['Wy'])
-        atk_ground_firepower = sum([atk_oli[x] for x in atk_oli if x != 'Wy'])
-        def_ground_firepower = sum([def_oli[x] for x in def_oli if x != 'Wy'])
+        if atk_oli.antitank > def_oli.armour:
+            atk_oli.antitank = def_oli.armour + 0.5 * (atk_oli.antitank - def_oli.armour)
+        if def_oli.antitank > atk_oli.armour:
+            def_oli.antitank = atk_oli.armour + 0.5 * (def_oli.antitank - atk_oli.armour)
+        if atk_oli.antiair > def_oli.aircraft:
+            atk_oli.antiair = def_oli.aircraft + 0.5 * (atk_oli.antiair - def_oli.aircraft)
+        if def_oli.antiair > atk_oli.aircraft:
+            def_oli.antiair = atk_oli.aircraft + 0.5 * (def_oli.antiair - atk_oli.aircraft)
+        atk_ground_firepower = atk_oli.calc_total() - atk_oli.aircraft
+        def_ground_firepower = def_oli.calc_total() - def_oli.aircraft
 
-        if atk_oli['Wy'] > atk_ground_firepower:
-            atk_oli['Wy'] = atk_ground_firepower + 0.5 * (atk_oli['Wy'] - atk_ground_firepower)
-        if atk_oli['Wy'] > 3*atk_ground_firepower:
-            atk_oli['Wy'] = 3*atk_ground_firepower
+        if atk_oli.aircraft > atk_ground_firepower:
+            atk_oli.aircraft = atk_ground_firepower + 0.5 * (atk_oli.aircraft - atk_ground_firepower)
+        if atk_oli.aircraft > 3 * atk_ground_firepower:
+            atk_oli.aircraft = 3 * atk_ground_firepower
 
-        if def_oli['Wy'] > def_ground_firepower:
-            def_oli['Wy'] = def_ground_firepower + 0.5 * (def_oli['Wy'] - def_ground_firepower)
-        if def_oli['Wy'] > 3*def_ground_firepower:
-            def_oli['Wy'] = 3*def_ground_firepower
+        if def_oli.aircraft > def_ground_firepower:
+            def_oli.aircraft = def_ground_firepower + 0.5 * (def_oli.aircraft - def_ground_firepower)
+        if def_oli.aircraft > 3 * def_ground_firepower:
+            def_oli.aircraft = 3 * def_ground_firepower
 
         # Attacker variables
         # Terrain Factors
@@ -328,18 +365,21 @@ class Wargame:
         # Era factor:
         JFactor = 15 # 20 for WW2, 15 for 1970s
         # Attacker strength calculation
-        atk_S = ((atk_oli['Ws'] + atk_oli['Wmg'] + atk_oli['Whw']) * rn) + (atk_oli['Wgi'] * rn) + \
-                ((atk_oli['Wg'] + atk_oli['Wgy']) * (rwg * hwg * zwg * wyga)) + \
-                (atk_oli['Wi'] * rwi * hwi) + (atk_oli['Wy'] * rwy * hwy * zwy * wyya)
+        atk_S = (((atk_oli.small_arms + atk_oli.machine_guns + atk_oli.heavy_weapons) * rn)
+                + (atk_oli.antitank * rn)
+                + ((atk_oli.artillery + atk_oli.antiair) * (rwg * hwg * zwg * wyga))
+                + (atk_oli.armour * rwi * hwi)
+                + (atk_oli.aircraft * rwy * hwy * zwy * wyya))
         
         # Defender strength calculation
-        def_S = ((def_oli['Ws'] + def_oli['Wmg'] + def_oli['Whw']) * rn) + (def_oli['Wgi'] * rn) + \
-                ((def_oli['Wg'] + def_oli['Wgy']) * (rwg * hwg * zwg * wygd)) + \
-                (def_oli['Wi'] * rwi * hwi) + (def_oli['Wy'] * rwy * hwy * zwy * wyyd)
-
+        def_S = (((def_oli.small_arms + def_oli.machine_guns + def_oli.heavy_weapons) * rn)
+                + (def_oli.antitank * rn)
+                + ((def_oli.artillery + def_oli.antiair) * (rwg * hwg * zwg * wygd))
+                + (def_oli.armour * rwi * hwi)
+                + (def_oli.aircraft * rwy * hwy * zwy * wyyd))
 
         # Attacker mobility calculation
-        atk_M = (((Na + JFactor*Ja + atk_oli['Wi']) * atk_my / Na) / ((Nd + JFactor*Jd + def_oli['Wi']) * def_my / Nd))**0.5 * Msur
+        atk_M = (((Na + JFactor*Ja + atk_oli.armour) * atk_my / Na) / ((Nd + JFactor*Jd + def_oli.armour) * def_my / Nd))**0.5 * Msur
         atk_m = atk_M - (1-rm*hm)*(atk_M-1) # operational mobility, different than M
 
         # Defender mobility calculation
@@ -375,13 +415,13 @@ class Wargame:
         # power ratio factor for casualties
         cd_power    = OPPOSITION_FACTORS.interpolate(1/PRatio)
         # personnel strength factor for casualties
-        ca_strength = STRENGTH_SIZE_FACTORS.interp(Na)
+        ca_strength = STRENGTH_SIZE_FACTORS.interpolate(Na)
         # personnel strength factor for casualties
-        cd_strength = STRENGTH_SIZE_FACTORS.interp(Nd)
+        cd_strength = STRENGTH_SIZE_FACTORS.interpolate(Nd)
         # armour strength factor for casualties
-        ca_arm      = STRENGTH_SIZE_ARMOUR_FACTORS.interp(Nia)
+        ca_arm      = STRENGTH_SIZE_ARMOUR_FACTORS.interpolate(Nia)
         # armour strength factor for casualties
-        cd_arm      = STRENGTH_SIZE_ARMOUR_FACTORS.interp(Nid)
+        cd_arm      = STRENGTH_SIZE_ARMOUR_FACTORS.interpolate(Nid)
         ca  = 0.028 * rc * hc * uca * ca_strength * ca_power
         # TODO - factor in Attrition is 0.04, 0.028 in NPW, why?
         cia = ca * 6.0 * ca_arm * float(battleData['defcev'])
@@ -408,10 +448,12 @@ class Wargame:
         
         if commit:
             # send casualty data to the formations
+            atkCas = CasualtyRates(ca, cia, cga, True)
+            defCas = CasualtyRates(cd, cid, cgd, False)
             for a in atk_land_units:
-                self.formationsById[a].inflict_losses(ca, cia, cga, True)
+                self.formationsById[a].inflict_losses(atkCas)
             for d in def_land_units:
-                self.formationsById[d].inflict_losses(cd, cid, cgd, False)
+                self.formationsById[d].inflict_losses(defCas)
 
         else:
             # return data to the caller

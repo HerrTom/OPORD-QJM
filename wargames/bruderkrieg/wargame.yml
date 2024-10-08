@@ -1,0 +1,23 @@
+name: The Kiel Offensive
+start_date: 1985-08-13T12:00:00Z
+image: https://i.redd.it/ydxl0ydzqgt71.png  # TODO: replace image
+description: 8. Mot.Schützendivision attacks through the Lübeck canal.
+factions:
+  East Germany:
+    color: '#80451b'
+    aircraft:
+      - MiG-21M
+      - MiG-23MF
+      - MiG-23ML
+      - MiG-23BN
+      - Su-22M-4
+  West Germany:
+    color: '#6a7580'
+    aircraft:
+      - F-4F
+      - Tornado IDS
+      - Alpha Jet
+
+# QJM Factors
+dispersion_factor: 4000
+dispersion_depth: 67

@@ -1,0 +1,12 @@
+name: Panzerregiment 8
+shortname: 8
+faction: East Germany
+toe: TOEEG020003
+nsns:
+  - MPi-KM
+  - MPi-KMS
+  - BMP-1
+  - T-55A
+  - ZSU-23-4V
+  - 9K35 Strela-10
+position: null

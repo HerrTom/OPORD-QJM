@@ -24,6 +24,11 @@ class FormationOLI:
         self.armour = armour
         self.aircraft = aircraft
 
+    def calc_total(self):
+        return (self.small_arms + self.machine_guns + self.heavy_weapons
+              + self.antitank + self.artillery + self.antiair + self.armour
+              + self.aircraft)
+
     def __add__(self, other):
         return FormationOLI(self.small_arms + other.small_arms,
                              self.machine_guns + other.machine_guns,

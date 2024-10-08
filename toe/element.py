@@ -57,6 +57,9 @@ class Element:
                 logging.warning(f'{e} not found in database!')
             self.qjm_equipment.append(qjm_equip)
 
+    def get_qjm_equipment(self,):
+        return self.qjm_equipment
+
     def get_oli(self):
         oli = FormationOLI()
         for e in self.qjm_equipment:

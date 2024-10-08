@@ -4,22 +4,28 @@ import secrets
 import string
 import logging
 from glob import glob
+from uuid import uuid4
 
 from .enums import ElementStatus
 from .exceptions import DuplicateIDError
 from .lin import LIN
 from .element import Personnel, Vehicle
-from qjm import FormationOLI
+from qjm import FormationOLI, EquipmentOLICategory
 
 
 class Formation:
-    def __init__(self, name: str, shortname: str, parent_shortname: str, toe, nsns: list = None):
+    def __init__(self, name: str, shortname: str, parent_shortname: str, toe,
+                 nsns: list = None, faction=None):
         self.name = name
         self.shortname = shortname
         self.parent_shortname = parent_shortname
         self.nation = toe.nation
         self.sidc = toe.sidc
-        self.id = name
+        self.id = str(uuid4())
+        self.faction = faction
+
+        # This is set when the formation is loaded into the wargame
+        self.color = None
 
         if nsns is None: # Avoiding mutable default argument
             nsns = []
@@ -57,7 +63,7 @@ class Formation:
         return f'Formation({self.shortname}/{self.parent_shortname}, {self.nation})'
 
     def copy_toe(self, name, shortname, toe, nsns):
-        return Formation(name, shortname, self.shortname, toe, nsns)
+        return Formation(name, shortname, self.shortname, toe, nsns, self.faction)
     
     def add_qjm_weapons(self, equipment_db):
         """ Assign QJM equipment to all personnel and vehicles in the formation. """
@@ -70,21 +76,6 @@ class Formation:
 
         for sub in self.subunits:
             sub.add_qjm_weapons(equipment_db)
-
-    def get_oli(self,):
-        # returns OLI statistics about formation
-        oli = {'Ws': 0, 'Wmg': 0, 'Whw': 0, 'Wgi': 0,
-                'Wg': 0, 'Wgy': 0, 'Wi': 0, 'Wy': 0}
-        for veh in self.vehicles:
-            oli['Wg'] += 1
-            oli['Wy'] += 1
-        for pers in self.personnel:
-            oli['Wi'] += 1
-        for sub in self.subunits:
-            oli_sub = sub.get_oli()
-            for key in oli_sub:
-                oli[key] += oli_sub[key]
-        return oli
 
     def inflict_losses(self, cr):
         """ Inflict casualties on the formation based on the casualty rates. """
@@ -108,6 +99,19 @@ class Formation:
             for crew in veh.crew:
                 all_equipment += crew.equipment
         return all_equipment
+    
+    def get_qjm_equipment(self,):
+        """ Get all QJM equipment in the formation. """
+        qjm_equipment = []
+        for veh in self.vehicles:
+            qjm_equipment += veh.get_qjm_equipment()
+            for crew in veh.crew:
+                qjm_equipment += crew.get_qjm_equipment()
+        for pers in self.personnel:
+            qjm_equipment += pers.get_qjm_equipment()
+        for sub in self.subunits:
+            qjm_equipment += sub.get_qjm_equipment()
+        return qjm_equipment
 
     def get_all_personnel(self,):
         all_personnel = []
@@ -400,6 +404,10 @@ class TOE_Database:
         else:
             short_name = ''
             higher_formation = ''
+
+        # Catch null higherFormation values
+        if higher_formation is None:
+            higher_formation = ''
                     
         unit_json = {'id': unit_json_id,
                      'name': toe_entry.name,
@@ -408,7 +416,7 @@ class TOE_Database:
                      '_gid': group_json_id, # this is the group's ID
                      '_sid': side_json_id, # this is the side's ID
                      'state': [],
-                     '_state': None,
+                     '_state': {},
                      '_isOpen': False,
                      'subUnits': subunits,
                      'equipment': equip,

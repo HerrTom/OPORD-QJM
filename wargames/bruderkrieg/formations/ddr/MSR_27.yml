@@ -1,0 +1,12 @@
+name: Mot.-Schützen-Regiment 27
+shortname: 27
+faction: East Germany
+toe: TOEEG020001
+nsns:
+  - MPi-KM
+  - MPi-KMS
+  - BMP-1
+  - T-55A
+  - ZSU-23-4V
+  - 9K35 Strela-10
+position: null

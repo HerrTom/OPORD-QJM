@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QJM Simulation UI</title>
+  <title>OPORD-QJM Simulation UI</title>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.11.1/dist/full.min.css" rel="stylesheet" type="text/css" />
   <link rel="stylesheet" href="node_modules/modern-normalize/modern-normalize.css">
   <style>
@@ -26,286 +26,301 @@
   </style>
 </head>
 <body onload="init()">
-
-<div class="md:container md:mx-auto">
-  <div role="tablist" class="tabs tabs-bordered">
-    <input type="radio" name="qjm_steps" role="tab" class="tab" aria-label="A. Attacking & Defending Units" checked/>
-    <div role="tabpanel" class="tab-content p-10">
-      <h2 class="mb-4 text-2xl font-extrabold leading-none tracking-tight text-gray-900 dark:text-white pt-4">Available Units</h2>
-      <div id="factions" class="factions-grid"></div>
-      <h2 class="mb-4 text-2xl font-extrabold leading-none tracking-tight text-gray-900 dark:text-white pt-4">Units in Combat</h2>
-      <div class="container px-4 grid grid-cols-2">
-        <div id="attackers" class="droppable m-4 flex-auto">Attackers</div>
-        <div id="defenders" class="droppable m-4 flex-auto">Defenders</div>
+<div class="navbar bg-base-100">
+    <a class="btn btn-ghost text-xl" href="/">OPORD-QJM Simulation UI</a>
+</div>
+<div class="flex h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-neutral shadow-lg p-4">
+      <h2 class="text-lg font-bold mb-4">Admin Controls</h2>
+      
+      <!-- Date Picker -->
+      <label class="form-control mb-4">
+        <div class="label">
+          <span class="label-text text">Date:</span>
+        </div>
+        <input type="date" id="battle_date" class="input input-bordered w-full" />
+      </label>
+      <button class="btn btn-primary w-full mb-4" disabled>Ammunition Resupply</button>
+      <button class="btn btn-primary w-full mb-4" disabled>Casualty Replacement</button>
+      <button class="btn btn-primary w-full mb-4" onclick="exportOrbatMapper()">Export to OrbatMapper</button>
+    </aside>
+  <!-- Main Content -->
+  <div class="flex-grow p-4">
+  <div class="md:container md:mx-auto">
+    <div role="tablist" class="tabs tabs-bordered">
+      <input type="radio" name="qjm_steps" role="tab" class="tab" aria-label="A. Attacking & Defending Units" checked/>
+      <div role="tabpanel" class="tab-content p-10">
+        <h2 class="mb-4 text-2xl font-extrabold leading-none tracking-tight text-gray-900 dark:text-white pt-4">Available Units</h2>
+        <div id="factions" class="factions-grid"></div>
+        <h2 class="mb-4 text-2xl font-extrabold leading-none tracking-tight text-gray-900 dark:text-white pt-4">Units in Combat</h2>
+        <div class="container px-4 grid grid-cols-2">
+          <div id="attackers" class="droppable m-4 flex-auto">Attackers</div>
+          <div id="defenders" class="droppable m-4 flex-auto">Defenders</div>
+        </div>
       </div>
-    </div>
 
-    <input type="radio" name="qjm_steps" role="tab" class="tab" aria-label="B. Air Support Sorties" />
-    <div role="tabpanel" class="tab-content p-10">
-      <h2 class="mb-4 text-2xl font-extrabold leading-none tracking-tight text-gray-900 dark:text-white pt-4">Available Aircraft</h2>
-      <div id="air_factions" class="factions-grid"></div>
-      <h2 class="mb-4 text-2xl font-extrabold leading-none tracking-tight text-gray-900 dark:text-white pt-4">Units in Combat</h2>
-      <div class="container px-4 grid grid-cols-2">
-        <div id="air_attackers" class="droppable m-4 flex-auto">Attackers</div>
-        <div id="air_defenders" class="droppable m-4 flex-auto">Defenders</div>
+      <input type="radio" name="qjm_steps" role="tab" class="tab" aria-label="B. Air Support Sorties" />
+      <div role="tabpanel" class="tab-content p-10">
+        <h2 class="mb-4 text-2xl font-extrabold leading-none tracking-tight text-gray-900 dark:text-white pt-4">Available Aircraft</h2>
+        <div id="air_factions" class="factions-grid"></div>
+        <h2 class="mb-4 text-2xl font-extrabold leading-none tracking-tight text-gray-900 dark:text-white pt-4">Units in Combat</h2>
+        <div class="container px-4 grid grid-cols-2">
+          <div id="air_attackers" class="droppable m-4 flex-auto">Attackers</div>
+          <div id="air_defenders" class="droppable m-4 flex-auto">Defenders</div>
+        </div>
       </div>
-    </div>
 
-    <input type="radio" name="qjm_steps" role="tab" class="tab" aria-label="C. Environmental Variables" />
-    <div role="tabpanel" class="tab-content p-10">
-      <h2 class="mb-4 text-2xl font-extrabold leading-none tracking-tight text-gray-900 dark:text-white pt-4">Battle Environment Factors</h2>
-      <label class="form-control w-full max-w-md">
-        <div class="label">
-          <span class="label-text">Terrain Type:</span>
-        </div>
-        <select class="select select-bordered" id="terrain">
-          <option>Rugged - Heavily Wooded</option>
-          <option>Rugged - Mixed</option>
-          <option>Rugged - Bare</option>
-          <option>Rolling- Heavily Wooded</option>
-          <option>Rolling - Mixed</option>
-          <option>Rolling - Bare</option>
-          <option>Flat - Heavily Wooded</option>
-          <option>Flat - Mixed</option>
-          <option>Flat - Bare, hard</option>
-          <option>Flat Desert</option>
-          <option>Rolling Dunes</option>
-          <option>Swamp - Jungled</option>
-          <option>Swamp - mixed or open</option>
-          <option>Urban</option>
-        </select>
-      </label>
-      <label class="form-control w-full max-w-md">
-        <div class="label">
-          <span class="label-text">Season:</span>
-        </div>
-        <select class="select select-bordered" id="Season">
-          <optgroup label="Temperate">
-            <option>Spring - Temperate</option>
-            <option>Summer - Temperature</option>
-            <option>Fall - Temperate</option>
-            <option>Winter - Temperate</option>
-          </optgroup>
-          <optgroup label="Desert">
-            <option>Spring - Desert</option>
-            <option>Summer - Desert</option>
-            <option>Fall - Desert</option>
-            <option>Winter - Desert</option>
-          </optgroup>
-          <optgroup label="Jungle">
-            <option>Spring - Jungle</option>
-            <option>Summer - Jungle</option>
-            <option>Fall - Jungle</option>
-            <option>Winter - Jungle</option>
-          </optgroup>
-        </select>
-      </label>
-      <label class="form-control w-full max-w-md">
-        <div class="label">
-          <span class="label-text">Weather:</span>
-        </div>
-        <select class="select select-bordered" id="weather">
-          <option>Dry - Sunshine- Extreme Heat</option>
-          <option>Dry - Sunshine - Temperate</option>
-          <option>Dry - Sunshine - Extreme Cold</option>
-          <option>Dry - Overcast - Extreme Heat</option>
-          <option>Dry - Overcast - Temperate</option>
-          <option>Dry - Overcast - Extreme Cold</option>
-          <option>Wet - Light - Extreme Heat</option>
-          <option>Wet - Light - Temperate</option>
-          <option>Wet - Light - Extreme Cold</option>
-          <option>Wet - Heavy - Extreme Heat</option>
-          <option>Wet - Heavy - Temperate</option>
-          <option>Wet - Heavy - Extreme Cold</option>
-        </select>
-      </label>
-      <label class="form-control w-full max-w-md">
-        <div class="label">
-          <span class="label-text">River:</span>
-        </div>
-        <select class="select select-bordered" id="riverObstacle">
-          <option>No</option>
-          <optgroup label="Fordable">
-            <option>Fordable (20 m)</option>
-            <option>Fordable (50 m)</option>
-            <option>Fordable (100 m)</option>
-            <option>Fordable (500 m)</option>
-          </optgroup>
-          <optgroup label="Unfordable">
-            <option>Unfordable (20 m)</option>
-            <option>Unfordable (50 m)</option>
-            <option>Unfordable (100 m)</option>
-            <option>Unfordable (500 m)</option>
-          </optgroup>
-        </select>
-      </label>
-      <label class="form-control w-full max-w-md">
-        <div class="label">
-          <span class="label-text">Minefield (density/km of front):</span>
-        </div>
-        <select class="select select-bordered" id="mineObstacle">
-          <option>No</option>
-          <option>10</option>
-          <option>20</option>
-          <option>50</option>
-          <option>100</option>
-          <option>500</option>
-        </select>
-      </label>
-      <label class="form-control w-full max-w-md">
-        <div class="label">
-          <span class="label-text">Shoreline Fires:</span>
-        </div>
-        <select class="select select-bordered" id="shorelineFires">
-          <option>No shoreline</option>
-          <option>Small Arms (up to 1,000 m from shore)</option>
-          <option>Light Artillery (up to 10,000 m from shore)</option>
-          <option>Medium Artillery (up to 15,000 m from shore)</option>
-        </select>
-      </label>
-      <label class="form-control w-full max-w-md">
-        <div class="label">
-          <span class="label-text">Shoreline Type:</span>
-        </div>
-        <select class="select select-bordered" id="shorelineType">
-          <option>No shoreline</option>
-          <option>Across Beach</option>
-          <option>Across Major Unfordable River</option>
-          <option>Across Major Fordable or Minor Unfordable River</option>
-        </select>
-      </label>
-    </div>
+      <input type="radio" name="qjm_steps" role="tab" class="tab" aria-label="C. Environmental Variables" />
+      <div role="tabpanel" class="tab-content p-10">
+        <h2 class="mb-4 text-2xl font-extrabold leading-none tracking-tight text-gray-900 dark:text-white pt-4">Battle Environment Factors</h2>
+        <label class="form-control w-full max-w-md">
+          <div class="label">
+            <span class="label-text">Terrain Type:</span>
+          </div>
+          <select class="select select-bordered" id="terrain">
+            <option>Rugged - Heavily Wooded</option>
+            <option>Rugged - Mixed</option>
+            <option>Rugged - Bare</option>
+            <option>Rolling- Heavily Wooded</option>
+            <option>Rolling - Mixed</option>
+            <option>Rolling - Bare</option>
+            <option>Flat - Heavily Wooded</option>
+            <option>Flat - Mixed</option>
+            <option>Flat - Bare, hard</option>
+            <option>Flat Desert</option>
+            <option>Rolling Dunes</option>
+            <option>Swamp - Jungled</option>
+            <option>Swamp - mixed or open</option>
+            <option>Urban</option>
+          </select>
+        </label>
+        <label class="form-control w-full max-w-md">
+          <div class="label">
+            <span class="label-text">Season:</span>
+          </div>
+          <select class="select select-bordered" id="Season">
+            <optgroup label="Temperate">
+              <option>Spring - Temperate</option>
+              <option>Summer - Temperature</option>
+              <option>Fall - Temperate</option>
+              <option>Winter - Temperate</option>
+            </optgroup>
+            <optgroup label="Desert">
+              <option>Spring - Desert</option>
+              <option>Summer - Desert</option>
+              <option>Fall - Desert</option>
+              <option>Winter - Desert</option>
+            </optgroup>
+            <optgroup label="Jungle">
+              <option>Spring - Jungle</option>
+              <option>Summer - Jungle</option>
+              <option>Fall - Jungle</option>
+              <option>Winter - Jungle</option>
+            </optgroup>
+          </select>
+        </label>
+        <label class="form-control w-full max-w-md">
+          <div class="label">
+            <span class="label-text">Weather:</span>
+          </div>
+          <select class="select select-bordered" id="weather">
+            <option>Dry - Sunshine- Extreme Heat</option>
+            <option>Dry - Sunshine - Temperate</option>
+            <option>Dry - Sunshine - Extreme Cold</option>
+            <option>Dry - Overcast - Extreme Heat</option>
+            <option>Dry - Overcast - Temperate</option>
+            <option>Dry - Overcast - Extreme Cold</option>
+            <option>Wet - Light - Extreme Heat</option>
+            <option>Wet - Light - Temperate</option>
+            <option>Wet - Light - Extreme Cold</option>
+            <option>Wet - Heavy - Extreme Heat</option>
+            <option>Wet - Heavy - Temperate</option>
+            <option>Wet - Heavy - Extreme Cold</option>
+          </select>
+        </label>
+        <label class="form-control w-full max-w-md">
+          <div class="label">
+            <span class="label-text">River:</span>
+          </div>
+          <select class="select select-bordered" id="riverObstacle">
+            <option>No</option>
+            <optgroup label="Fordable">
+              <option>Fordable (20 m)</option>
+              <option>Fordable (50 m)</option>
+              <option>Fordable (100 m)</option>
+              <option>Fordable (500 m)</option>
+            </optgroup>
+            <optgroup label="Unfordable">
+              <option>Unfordable (20 m)</option>
+              <option>Unfordable (50 m)</option>
+              <option>Unfordable (100 m)</option>
+              <option>Unfordable (500 m)</option>
+            </optgroup>
+          </select>
+        </label>
+        <label class="form-control w-full max-w-md">
+          <div class="label">
+            <span class="label-text">Minefield (density/km of front):</span>
+          </div>
+          <select class="select select-bordered" id="mineObstacle">
+            <option>No</option>
+            <option>10</option>
+            <option>20</option>
+            <option>50</option>
+            <option>100</option>
+            <option>500</option>
+          </select>
+        </label>
+        <label class="form-control w-full max-w-md">
+          <div class="label">
+            <span class="label-text">Shoreline Fires:</span>
+          </div>
+          <select class="select select-bordered" id="shorelineFires">
+            <option>No shoreline</option>
+            <option>Small Arms (up to 1,000 m from shore)</option>
+            <option>Light Artillery (up to 10,000 m from shore)</option>
+            <option>Medium Artillery (up to 15,000 m from shore)</option>
+          </select>
+        </label>
+        <label class="form-control w-full max-w-md">
+          <div class="label">
+            <span class="label-text">Shoreline Type:</span>
+          </div>
+          <select class="select select-bordered" id="shorelineType">
+            <option>No shoreline</option>
+            <option>Across Beach</option>
+            <option>Across Major Unfordable River</option>
+            <option>Across Major Fordable or Minor Unfordable River</option>
+          </select>
+        </label>
+      </div>
 
-    <input type="radio" name="qjm_steps" role="tab" class="tab" aria-label="D. Force Variables" />
-    <div role="tabpanel" class="tab-content p-10">
-      <h2 class="mb-4 text-2xl font-extrabold leading-none tracking-tight text-gray-900 dark:text-white pt-4">Force Variables</h2>
-      <label class="form-control w-full max-w-md">
-        <div class="label">
-          <span class="label-text">Defender Posture:</span>
-        </div>
-        <select class="select select-bordered" id="posture">
-          <option>Hasty Defense</option>
-          <option>Prepared Defense</option>
-          <option>Fortified Defense</option>
-          <option>Delay</option>
-          <option>Withdrawal</option>
-          <option>Meeting Engagement</option>
-        </select>
-      </label>
-      <div class="w-full max-w-md inline-flex">
+      <input type="radio" name="qjm_steps" role="tab" class="tab" aria-label="D. Force Variables" />
+      <div role="tabpanel" class="tab-content p-10">
+        <h2 class="mb-4 text-2xl font-extrabold leading-none tracking-tight text-gray-900 dark:text-white pt-4">Force Variables</h2>
+        <label class="form-control w-full max-w-md">
+          <div class="label">
+            <span class="label-text">Defender Posture:</span>
+          </div>
+          <select class="select select-bordered" id="posture">
+            <option>Hasty Defense</option>
+            <option>Prepared Defense</option>
+            <option>Fortified Defense</option>
+            <option>Delay</option>
+            <option>Withdrawal</option>
+            <option>Meeting Engagement</option>
+          </select>
+        </label>
+        <div class="w-full max-w-md inline-flex">
+          <label class="form-control">
+          <div class="label">
+            <span class="label-text">Defender Frontage (km):</span>
+          </div>
+          <input type="number" id="defFrontage" min="1" max="5000" value="1" class="input input-bordered max-w-32" onchange="getPersonnelCount()"/>
+        </label>
+        <div class="flex w-full max-w-16"></div>
         <label class="form-control">
         <div class="label">
-          <span class="label-text">Defender Frontage (km):</span>
+          <span class="label-text">Defender Density:</span>
         </div>
-        <input type="number" id="defFrontage" min="1" max="5000" value="1" class="input input-bordered max-w-32" onchange="getPersonnelCount()"/>
+        <input id="defDensity" class="input input-bordered max-w-32" disabled />
       </label>
-      <div class="flex w-full max-w-16"></div>
-      <label class="form-control">
-      <div class="label">
-        <span class="label-text">Defender Density:</span>
+        </div>
+        <label class="form-control w-full max-w-md">
+          <div class="label">
+            <span class="label-text">Attacker Air Situation:</span>
+          </div>
+          <select class="select select-bordered" id="airsuperiority">
+            <option>Air Superiority</option>
+            <option>Air Parity</option>
+            <option>Air Inferiority</option>
+          </select>
+        </label>
+        <label class="form-control w-full max-w-md">
+          <div class="label">
+            <span class="label-text">Attacker Level of Surprise:</span>
+          </div>
+          <select class="select select-bordered" id="atksurprise">
+            <option>No Surprise</option>
+            <option>Minor Surprise</option>
+            <option>Substantial Surprise</option>
+            <option>Complete Surprise</option>
+          </select>
+        </label>
+        <label class="form-control w-full max-w-md">
+          <div class="label">
+            <span class="label-text">Attacker Days Since Surprise:</span>
+          </div>
+          <input type="range" min="0" max="3" value="0" class="range" step="1" id="atksurprisedays" />
+          <div class="w-full flex justify-between text-xs px-2">
+            <span>0</span>
+            <span>1</span>
+            <span>2</span>
+            <span>3+</span>
+          </div>
+        </label>
+        <label class="form-control w-full max-w-md">
+          <div class="label">
+            <span class="label-text">Attacker CEV Adjustment:</span>
+            <span class="label-text" id="atkcevdisplay">1.0</span>
+          </div>
+          <input type="range" min="0" max="2" value="1" class="range" step="0.1" id="atkcev" onchange="updateCevDisplay()" />
+          <div class="w-full flex justify-between text-xs px-2">
+            <span>0.0</span>
+            <span>0.5</span>
+            <span>1.0</span>
+            <span>1.5</span>
+            <span>2.0</span>
+          </div>
+        </label>
+        <label class="form-control w-full max-w-md">
+          <div class="label">
+            <span class="label-text">Defender CEV Adjustment:</span>
+            <span class="label-text" id="defcevdisplay">1.0</span>
+          </div>
+          <input type="range" min="0" max="2" value="1" class="range" step="0.1" id="defcev" onchange="updateCevDisplay()" />
+          <div class="w-full flex justify-between text-xs px-2">
+            <span>0.0</span>
+            <span>0.5</span>
+            <span>1.0</span>
+            <span>1.5</span>
+            <span>2.0</span>
+          </div>
+        </label>
       </div>
-      <input id="defDensity" class="input input-bordered max-w-32" disabled />
-    </label>
-      </div>
-      <label class="form-control w-full max-w-md">
-        <div class="label">
-          <span class="label-text">Attacker Air Situation:</span>
-        </div>
-        <select class="select select-bordered" id="airsuperiority">
-          <option>Air Superiority</option>
-          <option>Air Parity</option>
-          <option>Air Inferiority</option>
-        </select>
-      </label>
-      <label class="form-control w-full max-w-md">
-        <div class="label">
-          <span class="label-text">Attacker Level of Surprise:</span>
-        </div>
-        <select class="select select-bordered" id="atksurprise">
-          <option>No Surprise</option>
-          <option>Minor Surprise</option>
-          <option>Substantial Surprise</option>
-          <option>Complete Surprise</option>
-        </select>
-      </label>
-      <label class="form-control w-full max-w-md">
-        <div class="label">
-          <span class="label-text">Attacker Days Since Surprise:</span>
-        </div>
-        <input type="range" min="0" max="3" value="0" class="range" step="1" id="atksurprisedays" />
-        <div class="w-full flex justify-between text-xs px-2">
-          <span>0</span>
-          <span>1</span>
-          <span>2</span>
-          <span>3+</span>
-        </div>
-      </label>
-      <label class="form-control w-full max-w-md">
-        <div class="label">
-          <span class="label-text">Attacker CEV Adjustment:</span>
-          <span class="label-text" id="atkcevdisplay">1.0</span>
-        </div>
-        <input type="range" min="0" max="2" value="1" class="range" step="0.1" id="atkcev" onchange="updateCevDisplay()" />
-        <div class="w-full flex justify-between text-xs px-2">
-          <span>0.0</span>
-          <span>0.5</span>
-          <span>1.0</span>
-          <span>1.5</span>
-          <span>2.0</span>
-        </div>
-      </label>
-      <label class="form-control w-full max-w-md">
-        <div class="label">
-          <span class="label-text">Defender CEV Adjustment:</span>
-          <span class="label-text" id="defcevdisplay">1.0</span>
-        </div>
-        <input type="range" min="0" max="2" value="1" class="range" step="0.1" id="defcev" onchange="updateCevDisplay()" />
-        <div class="w-full flex justify-between text-xs px-2">
-          <span>0.0</span>
-          <span>0.5</span>
-          <span>1.0</span>
-          <span>1.5</span>
-          <span>2.0</span>
-        </div>
-      </label>
-    </div>
 
-    <input type="radio" name="qjm_steps" role="tab" class="tab" aria-label="E. Operational Variables" />
-    <div role="tabpanel" class="tab-content p-10">
-      <label class="form-control w-full max-w-md">
-        <div class="label">
-          <span class="label-text">Road Quality:</span>
+      <input type="radio" name="qjm_steps" role="tab" class="tab" aria-label="E. Operational Variables" />
+      <div role="tabpanel" class="tab-content p-10">
+        <label class="form-control w-full max-w-md">
+          <div class="label">
+            <span class="label-text">Road Quality:</span>
+          </div>
+          <input type="range" min="0.6" max="1" value="1" class="range" step="0.1" id="roadQuality" />
+          <div class="w-full flex justify-between text-xs px-2">
+            <span>Poor</span>
+            <span>Mediocre</span>
+            <span>Good</span>
+          </div>
+        </label>
+        <label class="form-control w-full max-w-md">
+          <div class="label">
+            <span class="label-text">Road Density:</span>
+          </div>
+          <input type="range" min="0.6" max="1" value="1" class="range" step="0.1" id="roadDensity" />
+          <div class="w-full flex justify-between text-xs px-2">
+            <span>Sparse</span>
+            <span>Moderate</span>
+            <span>Good</span>
+          </div>
+        </label>
+        <div class="w-full flex justify-between text-xs">
+          <button class="btn btn-success m-2" onclick="sendData();battleResultsModal.showModal()">Simulate</button>
         </div>
-        <input type="range" min="0.6" max="1" value="1" class="range" step="0.1" id="roadQuality" />
-        <div class="w-full flex justify-between text-xs px-2">
-          <span>Poor</span>
-          <span>Mediocre</span>
-          <span>Good</span>
-        </div>
-      </label>
-      <label class="form-control w-full max-w-md">
-        <div class="label">
-          <span class="label-text">Road Density:</span>
-        </div>
-        <input type="range" min="0.6" max="1" value="1" class="range" step="0.1" id="roadDensity" />
-        <div class="w-full flex justify-between text-xs px-2">
-          <span>Sparse</span>
-          <span>Moderate</span>
-          <span>Good</span>
-        </div>
-      </label>
-      <div class="w-full flex justify-between text-xs">
-        <button class="btn btn-success m-2" onclick="sendData();battleResultsModal.showModal()">Simulate</button>
       </div>
     </div>
   </div>
-  
-  <label class="form-control w-full max-w-md">
-    <div class="label">
-      <span class="label-text">Date:</span>
-    </div>
-    <input type="date" id="battle_date" class="input input-bordered" />
-  </label>
+  </div>
 </div>
 <!-- Formation data modal -->
 <dialog id="formationModal" class="modal">
@@ -644,7 +659,16 @@ function showFormationDetails(unitId) {
       document.getElementById('formationModal').classList.remove('hidden');
     })
     .catch(error => console.error('Error fetching formation details:', error));
-}
+};
+
+function exportOrbatMapper() {
+  fetch('/export_orbatmapper', {method: 'POST'})
+    .then(response => response.json())
+    .then(result => {
+      console.log('Exported to OrbatMapper:', result);
+    })
+    .catch(error => console.error('Error exporting to OrbatMapper:', error));
+};
 
 document.getElementById('saveChanges').addEventListener('click', () => {
   // Gather updated formation data and send it to the server
