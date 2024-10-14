@@ -172,8 +172,6 @@ class Vehicle:
             q_W = (q_weaps * q_MOF * q_RA + q_PF)
         self.q_OLI = q_W * q_RFE * q_FCE * q_ASE * \
             q_AME * q_CL * q_WHT
-        
-        logging.info('Vehicle Loaded: {:} | {:,.0f}'.format(self.name, self.q_OLI, q_W))
 
     def __repr__(self):
         return "Vehicle({})".format(self.name)

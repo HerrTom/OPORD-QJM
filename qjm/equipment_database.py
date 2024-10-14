@@ -45,7 +45,7 @@ class EquipmentDatabase:
         if name in self.weapons:
             return self.weapons[name]
         else:
-            logging.debug(f'Weapon {name} not found in database.')
+            # logging.debug(f'Weapon {name} not found in database.')
             return None
 
     def get_vehicle(self, name):
@@ -53,7 +53,7 @@ class EquipmentDatabase:
         if name in self.vehicles:
             return self.vehicles[name]
         else:
-            logging.debug(f'Vehicle {name} not found in database.')
+            # logging.debug(f'Vehicle {name} not found in database.')
             return None
 
     def initialize(self):

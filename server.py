@@ -50,8 +50,17 @@ def commit_battle():
 @app.route('/export_orbatmapper', methods=['POST'])
 def export_orbatmapper():
     status = wargame.export_orbatmapper('toe.json')
-    print(status)
     return jsonify({'status': status})
+
+@app.route('/save_scenario_state', methods=['POST'])
+def save_scenario_state():
+    wargame.save_sim_state('./wargames/saves/scenario_save.sav')
+    return jsonify({'status': True})
+
+@app.route('/load_scenario_state')
+def load_scenario_state():
+    wargame.load_sim_state('./wargames/saves/scenario_save.sav')
+    return redirect("/qjm/", code=302)
 
 @app.route('/get_personnel', methods=['POST'])
 def get_personnel():
@@ -70,13 +79,12 @@ def get_personnel():
 def get_formation(unit_id):
     formation = wargame.formationsById.get(unit_id)
     if formation:
-        oli = formation.get_OLI()
+        oli = formation.get_oli()
         return jsonify({
             'name': formation.name,
-            'oli': sum([oli[x] for x in oli]),
+            'oli': oli.calc_total(),
             'faction': formation.faction,
-            'personnel': formation.get_personnel(),
-            'equipment': {equip.name: formation.get_equip_status(equip) for equip in formation.equipment}
+            'personnel': formation.count_personnel(),
         })
     else:
         return jsonify({'error': 'Formation not found'}), 404

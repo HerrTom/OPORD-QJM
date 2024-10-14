@@ -154,7 +154,5 @@ class Weapon:
                         self.q_A * self.q_RL * self.q_SME * self.q_MBE * \
                         self.q_MCE * self.q_GE / GLOBAL_DISPERSION)
 
-        logging.info('Weapon Loaded: {:} | {:,.1f}'.format(self.name, self.q_OLI))
-
     def __repr__(self):
         return "Weapon({})".format(self.name)

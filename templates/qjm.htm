@@ -44,6 +44,7 @@
       <button class="btn btn-primary w-full mb-4" disabled>Ammunition Resupply</button>
       <button class="btn btn-primary w-full mb-4" disabled>Casualty Replacement</button>
       <button class="btn btn-primary w-full mb-4" onclick="exportOrbatMapper()">Export to OrbatMapper</button>
+      <button class="btn btn-primary w-full mb-4" onclick="saveState()">Save Scenario</button>
     </aside>
   <!-- Main Content -->
   <div class="flex-grow p-4">
@@ -618,43 +619,6 @@ function showFormationDetails(unitId) {
       oliDiv.innerHTML = `<strong>OLI:</strong> <input type="number" value="${data.oli.toFixed(0)}" id="formationOLI" class="input input-bordered w-full" disabled/>`;
       formationDetails.appendChild(oliDiv);
 
-      // Create the equipment table
-      const tableDiv = document.createElement('div');
-      tableDiv.className = 'overflow-x-auto';
-      const table = document.createElement('table');
-      table.className = 'table table-compact w-full';
-
-      // Create the table header with rotated labels
-      const thead = document.createElement('thead');
-      thead.innerHTML = `
-        <tr>
-          <th></th> <!-- Empty corner cell -->
-          <th class=""><span class="block">Allocated</span></th>
-          <th class=""><span class="block">Active</span></th>
-          <th class=""><span class="block">Damaged</span></th>
-          <th class=""><span class="block">Destroyed</span></th>
-        </tr>`;
-      table.appendChild(thead);
-
-      // Create the table body with equipment rows
-      const tbody = document.createElement('tbody');
-      for (const equip in data.equipment) {
-        const status = data.equipment[equip];
-        console.log(status)
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${equip}</td>
-          <td><input type="number" value="${status['Allocated']}" class="input input-sm input-bordered w-full text-center" /></td>
-          <td><input type="number" value="${status['Active']}" class="input input-sm input-bordered w-full text-center" /></td>
-          <td><input type="number" value="${status['Damaged']}" class="input input-sm input-bordered w-full text-center" /></td>
-          <td><input type="number" value="${status['Destroyed']}" class="input input-sm input-bordered w-full text-center" /></td>`;
-        tbody.appendChild(row);
-      }
-      table.appendChild(tbody);
-
-      tableDiv.appendChild(table);
-      formationDetails.appendChild(tableDiv);
-
       // Show the modal
       document.getElementById('formationModal').classList.remove('hidden');
     })
@@ -666,6 +630,15 @@ function exportOrbatMapper() {
     .then(response => response.json())
     .then(result => {
       console.log('Exported to OrbatMapper:', result);
+    })
+    .catch(error => console.error('Error exporting to OrbatMapper:', error));
+};
+
+function saveState() {
+  fetch('/save_scenario_state', {method: 'POST'})
+    .then(response => response.json())
+    .then(result => {
+      console.log('Saved scenario state:', result);
     })
     .catch(error => console.error('Error exporting to OrbatMapper:', error));
 };

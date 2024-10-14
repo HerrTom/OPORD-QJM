@@ -1,7 +1,7 @@
-name: Mot.-Schützen-Regiment 27
-shortname: 27
-faction: East Germany
-toe: TOEEG020001
+name: 661 PzGren Bn
+shortname: 661
+faction: West Germany
+toe: TOEWG000007
 nsns:
   - MPi-KM
   - MPi-KMS

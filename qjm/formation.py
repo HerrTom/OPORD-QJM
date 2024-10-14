@@ -27,7 +27,7 @@ class Formation():
             if key in weapon_dict:
                 self.equipment.update({weapon_dict[key]: [equip[key], equip[key], 0, 0]})
             else:
-                logging.error('Error: {} not found in database!'.format(key))
+                logging.warning('Formation.py: {} not found in database!'.format(key))
         self.calc_personnel()
 
 

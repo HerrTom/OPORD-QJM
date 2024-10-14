@@ -1,10 +1,7 @@
-import socket
-import json
+import pickle
 import yaml
 import logging
 from glob import glob
-from uuid import uuid1
-import numpy as np
 
 from toe import Formation, TOE_Database
 
@@ -25,16 +22,24 @@ from .qjm_data_classes import (CasualtyRates,
                                FormationOLI,
                                EquipmentOLICategory,
                                VehicleCategory)
+from .constructors import register_constructors
 
 
 # Setup debug logging to an empty file
-logging.basicConfig(filename='debug.log', level=logging.DEBUG)
+logging.basicConfig(
+    filename='debug.log',
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(module)s/%(funcName)s - %(message)s'
+)
 with open('debug.log', 'w') as f:
     f.write('')
 
 
 GLOBAL_TOE_DATABASE = TOE_Database()
 GLOBAL_TOE_DATABASE.load_database()
+
+# initialize the constructors
+register_constructors()
 
 class Wargame:
     def __init__(self):
@@ -57,6 +62,7 @@ class Wargame:
             self.formationsById = {}
         # update scenario string to subdirectory
         scenario = './wargames/' + scenario
+        self.scenario_name = scenario   # saves the name for future loading
         # load the scenario
         try:
             with open(scenario+'/wargame.yml') as f:
@@ -466,3 +472,27 @@ class Wargame:
                              'defTankCasualtyRate': cid,
                             }
             return battleResults
+
+    def save_sim_state(self, filename):
+        logging.info(f'Saving simulation state to {filename}')
+        state = {
+            'scenario_name': self.scenario_name,
+            'formations': self.formations,
+            'formationsByName': self.formationsByName,
+            'formationsById': self.formationsById,
+            'dispersion': self.dispersion,
+        }
+        with open(filename, 'wb') as f:
+            pickle.dump(state, f)
+        logging.info(f'Succesfully saved simulation state to {filename}')
+
+    def load_sim_state(self, filename):
+        logging.info(f'Loading simulation state from {filename}')
+        with open(filename, 'rb') as f:
+            state = pickle.load(f)
+            self.formations = state['formations']
+            self.formationsByName = state['formationsByName']
+            self.formationsById = state['formationsById']
+            self.dispersion = state['dispersion']
+            self.scenario_loaded = True
+        logging.info(f'Successfully loaded simulation state from {filename}')
