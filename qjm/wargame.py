@@ -428,13 +428,13 @@ class Wargame:
         ca_arm      = STRENGTH_SIZE_ARMOUR_FACTORS.interpolate(Nia)
         # armour strength factor for casualties
         cd_arm      = STRENGTH_SIZE_ARMOUR_FACTORS.interpolate(Nid)
-        ca  = 0.028 * rc * hc * uca * ca_strength * ca_power
         # TODO - factor in Attrition is 0.04, 0.028 in NPW, why?
+        ca  = 0.028 * rc * hc * uca * ca_strength * ca_power
         cia = ca * 6.0 * ca_arm * float(battleData['defcev'])
         cga = ca * float(battleData['defcev'])
 
-        cd  = 0.015 * rc * hc * ucd * cd_strength * cd_power * su_c
         # TODO - factor in Attrition is 0.04, 0.015 in NPW, why?
+        cd  = 0.015 * rc * hc * ucd * cd_strength * cd_power * su_c
         cid = cd * 3.0 * cd_arm * su_ct * float(battleData['atkcev'])
         cgd = cd * float(battleData['atkcev'])
 
@@ -496,3 +496,106 @@ class Wargame:
             self.dispersion = state['dispersion']
             self.scenario_loaded = True
         logging.info(f'Successfully loaded simulation state from {filename}')
+
+
+    def log_sitrep(self, battleData, results):
+    """Generates a structured SITREP based on standard military reporting format."""
+        
+        # Helper functions to approximate enemy information
+        def approximate_strength(personnel_count):
+            if personnel_count < 100:
+                return "few"
+            elif personnel_count < 500:
+                return "a moderate number of"
+            else:
+                return "many"
+        
+        def approximate_vehicle_strength(vehicle_count):
+            if vehicle_count < 5:
+                return "minimal"
+            elif vehicle_count < 15:
+                return "moderate"
+            else:
+                return "substantial"
+        
+        def describe_casualties(casualty_rate):
+            if casualty_rate < 0.1:
+                return "light casualties"
+            elif casualty_rate < 0.25:
+                return "moderate casualties"
+            else:
+                return "heavy casualties"
+
+        # Get date and time in DTG format
+        dtg = datetime.datetime.now().strftime("%d%H%MZ %b %y")
+        
+        # Generate the SITREP
+        sitrep = []
+        sitrep.append("### Situation Report ###")
+        sitrep.append(f"LINE 1 - DATE AND TIME: {dtg}")
+
+        # Line 2: Unit Making Report
+        unit_reporting = "Reporting Unit Name"  # replace with actual data source
+        sitrep.append(f"LINE 2 — UNIT: {unit_reporting}")
+
+        # Line 3: Reference Information
+        sitrep.append("LINE 3 — REFERENCE: (SITREP Report, Originator, and DTG)")
+        
+        # Line 4: Originating Unit
+        sitrep.append(f"LINE 4 — ORIGINATOR: {unit_reporting}")
+        
+        # Line 5: Reported Unit
+        sitrep.append("LINE 5 — REPORTED UNIT: (UIC of Reported Unit)")
+        
+        # Line 6: Home Location
+        sitrep.append("LINE 6 — HOME LOCATION: (UTM or MGRS Coordinates)")
+        
+        # Line 7: Present Location
+        sitrep.append("LINE 7 — PRESENT LOCATION: (UTM or MGRS Coordinates)")
+        
+        # Line 8: Activity - Brief description of reported unit’s current activity
+        activity = "Engaged in combat operations against opposing forces in a defensive posture."
+        sitrep.append(f"LINE 8 — ACTIVITY: {activity}")
+        
+        # Line 9: Combat Effectiveness
+        effectiveness = "Effective" if results['powerRatio'] > 1.0 else "Degraded"
+        sitrep.append(f"LINE 9 — EFFECTIVE: {effectiveness}")
+        
+        # Line 10: Own Situation Disposition/Status
+        own_situation = "Unit is positioned on forward lines with moderate personnel and vehicle strength. Preparing for further engagements as needed."
+        sitrep.append(f"LINE 10 — OWN SITUATION DISPOSITION/STATUS: {own_situation}")
+        
+        # Line 11: Location (Current unit location; simulated here)
+        sitrep.append("LINE 11 — LOCATION: (UTM or MGRS Coordinates)")
+        
+        # Line 12: Situation Overview
+        overview = "Engaged with enemy forces of uncertain strength in adverse weather conditions. Unit reports substantial engagement activity with no significant degradation in operational capability."
+        sitrep.append(f"LINE 12 — SITUATION OVERVIEW: {overview}")
+        
+        # Line 13: Operations Summary
+        operations_summary = ("Offensive operations initiated against an estimated enemy force of "
+                            f"{approximate_strength(battleData['defenders'][0])} personnel with {approximate_vehicle_strength(len(self.formationsById[battleData['defenders'][0]].vehicles))} vehicle support. "
+                            f"Enemy forces encountered {describe_casualties(results['defPersCasualtyRate'])} and displayed {describe_casualties(results['defTankCasualtyRate'])} in armored units.")
+        sitrep.append(f"LINE 13 — OPERATIONS:  {operations_summary}")
+        
+        # Line 14: Intelligence/Reconnaissance
+        intel = "Previous reconnaissance suggests enemy forces have limited armor support and light aerial assets. "
+        sitrep.append(f"LINE 14 — INTELLIGENCE/RECONNAISSANCE: {intel}")
+        
+        # Line 15: Logistics Summary
+        logistics = "Logistics and supply routes remain operational with no immediate deficiencies reported. Ammunition resupply anticipated within 24 hours."
+        sitrep.append(f"LINE 15 — LOGISTICS {logistics}")
+        
+        # Line 16: Communications/Connectivity
+        comms = "No significant communication outages reported. Internal networks functioning within acceptable parameters."
+        sitrep.append("LINE 16 — COMMUNICATIONS/CONNECTIVITY: {intel}")
+        
+        # Line 17: Personnel Summary
+        atk_personnel = self.formationsById[battleData['attackers'][0]].count_personnel()
+        def_personnel_casualty_desc = describe_casualties(results['defPersCasualtyRate'])
+        sitrep.append(f"LINE 17 — PERSONNEL_________________________________ Estimated attacker personnel: {atk_personnel}. Enemy personnel have suffered {def_personnel_casualty_desc}.")
+        
+        # Save the SITREP to a log file
+        sitrep_file = f"{dtg}_sitrep.txt"
+        with open(f"./wargames/saves/sitrep/{sitrep_file}", "a+") as file:
+            file.write("\n".join(sitrep) + "\n\n")

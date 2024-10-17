@@ -1,6 +1,8 @@
 # Specific to this project
 toe.json
 debug.log
+wargames/saves/*
+wargames/saves/sitrep/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
