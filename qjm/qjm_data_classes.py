@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 
 """ DATA CLASSES AND CONTAINERS """
@@ -42,6 +42,54 @@ class FormationOLI:
         return f"FormationOLI(small_arms={self.small_arms}, machine_guns={self.machine_guns}, " \
                f"heavy_weapons={self.heavy_weapons}, antitank={self.antitank}, artillery={self.artillery}, " \
                f"antiair={self.antiair}, armour={self.armour}, aircraft={self.aircraft})"
+
+
+@dataclass
+class BattleData:
+    # Input Data
+    terrain: str
+    weather: str
+    season: str
+    posture: str
+    air_superiority: str
+    atk_surprise: str
+    atk_surprise_days: int
+    atkcev: float
+    defcev: float
+    attackers: list
+    air_attackers: list
+    defenders: list
+    air_defenders: list
+    
+    # Calculated Metrics
+    atk_oli: FormationOLI = field(default_factory=FormationOLI)
+    def_oli: FormationOLI = field(default_factory=FormationOLI)
+    Na: int = 0
+    Nd: int = 0
+    Nia: int = 0
+    Nid: int = 0
+    Ja: int = 0
+    Jd: int = 0
+    atk_S: float = 0.0
+    def_S: float = 0.0
+    atk_m: float = 0.0
+    def_m: float = 1.0
+    atk_V: float = 0.0
+    def_V: float = 0.0
+    atk_v: float = 1.0
+    def_v: float = 1.0
+    atk_P: float = 0.0
+    def_P: float = 0.0
+    PRatio: float = 0.0
+
+    # Results
+    powerRatio: float = 0.0
+    powerAtk: float = 0.0
+    powerDef: float = 0.0
+    atkPersCasualtyRate: float = 0.0
+    atkTankCasualtyRate: float = 0.0
+    defPersCasualtyRate: float = 0.0
+    defTankCasualtyRate: float = 0.0
 
 
 class LossRateFactors:

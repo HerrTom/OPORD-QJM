@@ -21,8 +21,8 @@ from .factors import (
 from .qjm_data_classes import (CasualtyRates,
                                FormationOLI,
                                EquipmentOLICategory,
-                               VehicleCategory)
-from .constructors import register_constructors
+                               VehicleCategory,
+                               BattleData)
 
 
 # Setup debug logging to an empty file
@@ -37,9 +37,6 @@ with open('debug.log', 'w') as f:
 
 GLOBAL_TOE_DATABASE = TOE_Database()
 GLOBAL_TOE_DATABASE.load_database()
-
-# initialize the constructors
-register_constructors()
 
 class Wargame:
     def __init__(self):
@@ -115,17 +112,35 @@ class Wargame:
         GLOBAL_TOE_DATABASE.to_orbatmapper(filename, units=units)
         return True
     
-    def simulate_battle(self, battleData, commit=False):
+    def simulate_battle(self, battle_input, commit=False):
         """Simulates the battle using the QJM method.
 
         Args:
-            battleData (dict): Dictionary with all battle data information (TBD)
+            battle_input (dict): Dictionary with all battle data information (TBD)
         """
 
-        atk_land_units = battleData['attackers']
-        atk_sorties = battleData['air_attackers']
-        def_land_units = battleData['defenders']
-        def_sorties = battleData['air_defenders']
+        atk_land_units = battle_input['attackers']
+        atk_sorties = battle_input['air_attackers']
+        def_land_units = battle_input['defenders']
+        def_sorties = battle_input['air_defenders']
+
+        battle_data = BattleData(
+            terrain=battle_input['terrain'],
+            weather=battle_input['weather'],
+            season=battle_input['season'],
+            posture=battle_input['posture'],
+            air_superiority=battle_input['airsuperiority'],
+            atk_surprise=battle_input['atksurprise'],
+            atk_surprise_days=battle_input['atksurprisedays'],
+            atkcev=battle_input['atkcev'],
+            defcev=battle_input['defcev'],
+            attackers=battle_input['attackers'],
+            air_attackers=battle_input.get('air_attackers', []),
+            defenders=battle_input['defenders'],
+            air_defenders=battle_input.get('air_defenders', [])
+            )
+
+        print(battle_data)
 
         # calculate force strength
         # S = ((Ws + Wmg + Whw) * r_n) + (Wgi * rn) + ((Wg + Wgy) * (rwg * hwg * zwg * wyg)) + (Wi * rwi * hwi) + (Wy * rwy * hwy * zyw * wyy)
@@ -218,72 +233,72 @@ class Wargame:
 
         # Attacker variables
         # Terrain Factors
-        rm  = TERRAIN_FACTORS.get(battleData['terrain'],
+        rm  = TERRAIN_FACTORS.get(battle_input['terrain'],
                                   'Mobility (r_m)')
         rua  = 1.0
-        rud  = TERRAIN_FACTORS.get(battleData['terrain'],
+        rud  = TERRAIN_FACTORS.get(battle_input['terrain'],
                                   'Defense Position (r_u)')
-        rn  = TERRAIN_FACTORS.get(battleData['terrain'],
+        rn  = TERRAIN_FACTORS.get(battle_input['terrain'],
                                   'Infantry Weapons (r_n)')
-        rwg = TERRAIN_FACTORS.get(battleData['terrain'],
+        rwg = TERRAIN_FACTORS.get(battle_input['terrain'],
                                   'Artillery (r_wg)')
-        rwy = TERRAIN_FACTORS.get(battleData['terrain'],
+        rwy = TERRAIN_FACTORS.get(battle_input['terrain'],
                                   'Air (r_wy)')
-        rwi = TERRAIN_FACTORS.get(battleData['terrain'],
+        rwi = TERRAIN_FACTORS.get(battle_input['terrain'],
                                   'Tanks (r_wt)')
-        rc  = TERRAIN_FACTORS.get(battleData['terrain'],
+        rc  = TERRAIN_FACTORS.get(battle_input['terrain'],
                                   'Casualty (r_c)')
         # Weather Factors
-        hm  = WEATHER_FACTORS.get(battleData['weather'],
+        hm  = WEATHER_FACTORS.get(battle_input['weather'],
                               'Mobility (h_m)')
-        hua = WEATHER_FACTORS.get(battleData['weather'],
+        hua = WEATHER_FACTORS.get(battle_input['weather'],
                               'Attack (h_ua)')
         hud = 1.0
-        hwg = WEATHER_FACTORS.get(battleData['weather'],
+        hwg = WEATHER_FACTORS.get(battle_input['weather'],
                               'Artillery (h_wg)')
-        hwy = WEATHER_FACTORS.get(battleData['weather'],
+        hwy = WEATHER_FACTORS.get(battle_input['weather'],
                               'Air (h_wy)')
-        hwi = WEATHER_FACTORS.get(battleData['weather'],
+        hwi = WEATHER_FACTORS.get(battle_input['weather'],
                               'Tanks (h_wt)')
-        hc  = WEATHER_FACTORS.get(battleData['weather'],
+        hc  = WEATHER_FACTORS.get(battle_input['weather'],
                               'Casualties (h_c)')
         # Season Factors
-        zua = SEASON_FACTORS.get(battleData['season'],
+        zua = SEASON_FACTORS.get(battle_input['season'],
                              'Attack (z_u)')
         zud = 1.0
-        zwg = SEASON_FACTORS.get(battleData['season'],
+        zwg = SEASON_FACTORS.get(battle_input['season'],
                              'Artillery (z_wg)')
-        zwy = SEASON_FACTORS.get(battleData['season'],
+        zwy = SEASON_FACTORS.get(battle_input['season'],
                              'Air (z_wy)')
         # Posture Factors
         usa = 1.0
-        usd = POSTURE_FACTORS.get(battleData['posture'],
+        usd = POSTURE_FACTORS.get(battle_input['posture'],
                               'Strength (u_s)')
         uva = 1.0
-        uvd = POSTURE_FACTORS.get(battleData['posture'],
+        uvd = POSTURE_FACTORS.get(battle_input['posture'],
                               'Vulnerability (u_v)')
-        uca = POSTURE_FACTORS.get(battleData['posture'],
+        uca = POSTURE_FACTORS.get(battle_input['posture'],
                               'Attack Casualties (u_ca)')
-        ucd = POSTURE_FACTORS.get(battleData['posture'],
+        ucd = POSTURE_FACTORS.get(battle_input['posture'],
                               'Defense Casualties (u_cd)')
         # Surprise Factors
         eraSurpriseFactor = 1.33 # 1.33 post 1966
-        Msur  = SURPRISE_FACTORS.get(battleData['atksurprise'],
+        Msur  = SURPRISE_FACTORS.get(battle_input['atksurprise'],
                                      'Mobility Characteristics (Msur)'
                                      ) * eraSurpriseFactor
-        Vsura = SURPRISE_FACTORS.get(battleData['atksurprise'],
+        Vsura = SURPRISE_FACTORS.get(battle_input['atksurprise'],
                                      'Vulnerability (Vsur)'
                                      ) * eraSurpriseFactor
-        Vsurd = SURPRISE_FACTORS.get(battleData['atksurprise'],
+        Vsurd = SURPRISE_FACTORS.get(battle_input['atksurprise'],
                                      'Surprised Vulnerability (Vsurd)'
                                      ) * eraSurpriseFactor
-        su_c  = SURPRISE_FACTORS.get(battleData['atksurprise'],
+        su_c  = SURPRISE_FACTORS.get(battle_input['atksurprise'],
                                      'Surprised Vulnerability (Vsurd)'
                                      ) * eraSurpriseFactor
-        su_ct = SURPRISE_FACTORS.get(battleData['atksurprise'],
+        su_ct = SURPRISE_FACTORS.get(battle_input['atksurprise'],
                                      'Surprised Vulnerability (Vsurd)'
                                      ) * eraSurpriseFactor
-        surprise_days = int(battleData['atksurprisedays'])
+        surprise_days = int(battle_input['atksurprisedays'])
         # Update surprise factors for duration, all trend to 1.0 and reduce by 1/3 for each day
         Msur  = 1.0 + (Msur-1.0) * (3-surprise_days)/3
         Vsura = 1.0 + (Vsura-1.0) * (3-surprise_days)/3
@@ -298,7 +313,7 @@ class Wargame:
 
 
         # Air Superiority Factors
-        if battleData['airsuperiority'] == 'Air Superiority':
+        if battle_input['airsuperiority'] == 'Air Superiority':
             if hwy > 0.5:
                 atk_my = AIR_SUPERIORITY_FACTORS.get('Air Superiority',
                                                      'Mobility (m_yd)')
@@ -321,7 +336,7 @@ class Wargame:
                                                      'Vulnerability (v_y)')
             vyd  = AIR_SUPERIORITY_FACTORS.get('Air Inferiority',
                                                      'Vulnerability (v_y)')
-        elif battleData['airsuperiority'] == 'Air Inferiority':
+        elif battle_input['airsuperiority'] == 'Air Inferiority':
             if hwy > 0.5:
                 atk_my = AIR_SUPERIORITY_FACTORS.get('Air Inferiority',
                                                      'Mobility (m_yd)')
@@ -410,8 +425,8 @@ class Wargame:
         if def_v < 0.6:
             def_v = 0.6
 
-        atk_P = atk_S * atk_m * usa * rua * hua * zua * atk_v * float(battleData['atkcev'])
-        def_P = def_S * def_m * usd * rud * hud * zud * def_v * float(battleData['defcev'])
+        atk_P = atk_S * atk_m * usa * rua * hua * zua * atk_v * float(battle_input['atkcev'])
+        def_P = def_S * def_m * usd * rud * hud * zud * def_v * float(battle_input['defcev'])
 
         PRatio = atk_P / def_P
 
@@ -430,13 +445,13 @@ class Wargame:
         cd_arm      = STRENGTH_SIZE_ARMOUR_FACTORS.interpolate(Nid)
         # TODO - factor in Attrition is 0.04, 0.028 in NPW, why?
         ca  = 0.028 * rc * hc * uca * ca_strength * ca_power
-        cia = ca * 6.0 * ca_arm * float(battleData['defcev'])
-        cga = ca * float(battleData['defcev'])
+        cia = ca * 6.0 * ca_arm * float(battle_input['defcev'])
+        cga = ca * float(battle_input['defcev'])
 
         # TODO - factor in Attrition is 0.04, 0.015 in NPW, why?
         cd  = 0.015 * rc * hc * ucd * cd_strength * cd_power * su_c
-        cid = cd * 3.0 * cd_arm * su_ct * float(battleData['atkcev'])
-        cgd = cd * float(battleData['atkcev'])
+        cid = cd * 3.0 * cd_arm * su_ct * float(battle_input['atkcev'])
+        cgd = cd * float(battle_input['atkcev'])
 
         # Print combat data
         print('###### COMBAT RESULTS ########\n' +
@@ -498,8 +513,8 @@ class Wargame:
         logging.info(f'Successfully loaded simulation state from {filename}')
 
 
-    def log_sitrep(self, battleData, results):
-    """Generates a structured SITREP based on standard military reporting format."""
+    def log_sitrep(self, battle_input, results):
+        """Generates a structured SITREP based on standard military reporting format."""
         
         # Helper functions to approximate enemy information
         def approximate_strength(personnel_count):
@@ -574,7 +589,7 @@ class Wargame:
         
         # Line 13: Operations Summary
         operations_summary = ("Offensive operations initiated against an estimated enemy force of "
-                            f"{approximate_strength(battleData['defenders'][0])} personnel with {approximate_vehicle_strength(len(self.formationsById[battleData['defenders'][0]].vehicles))} vehicle support. "
+                            f"{approximate_strength(battle_input['defenders'][0])} personnel with {approximate_vehicle_strength(len(self.formationsById[battle_input['defenders'][0]].vehicles))} vehicle support. "
                             f"Enemy forces encountered {describe_casualties(results['defPersCasualtyRate'])} and displayed {describe_casualties(results['defTankCasualtyRate'])} in armored units.")
         sitrep.append(f"LINE 13 — OPERATIONS:  {operations_summary}")
         
@@ -591,7 +606,7 @@ class Wargame:
         sitrep.append("LINE 16 — COMMUNICATIONS/CONNECTIVITY: {intel}")
         
         # Line 17: Personnel Summary
-        atk_personnel = self.formationsById[battleData['attackers'][0]].count_personnel()
+        atk_personnel = self.formationsById[battle_input['attackers'][0]].count_personnel()
         def_personnel_casualty_desc = describe_casualties(results['defPersCasualtyRate'])
         sitrep.append(f"LINE 17 — PERSONNEL_________________________________ Estimated attacker personnel: {atk_personnel}. Enemy personnel have suffered {def_personnel_casualty_desc}.")
         
