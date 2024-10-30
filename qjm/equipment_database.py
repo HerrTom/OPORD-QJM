@@ -23,7 +23,7 @@ class EquipmentDatabase:
             try:
                 weapon = Weapon(file)
                 self.weapons[weapon.name] = weapon
-                logging.info('Weapon {} loaded.'.format(weapon.name))
+                logging.info(f'Weapon {weapon.name} loaded @ {weapon.q_OLI}')
             except Exception as e:
                 logging.error(f'Failed to load weapon from {file}: {str(e)}')
 
@@ -36,7 +36,7 @@ class EquipmentDatabase:
             try:
                 vehicle = Vehicle(file, list(self.weapons.values()))
                 self.vehicles[vehicle.name] = vehicle
-                logging.info('Vehicle {} loaded.'.format(vehicle.name))
+                logging.info(f'Vehicle {vehicle.name} loaded @ {vehicle.q_OLI}')
             except Exception as e:
                 logging.error(f'Failed to load vehicle from {file}: {str(e)}')
 

@@ -1,0 +1,17 @@
+name: MK 20 Rh 202
+category: heavy weapon  # can be small arm, machine gun, heavy weapon, antitank, armour, artillery, close air support, or antiair
+crew: 2 # crew is only counted if a weapon is used directly
+calibre: 20
+rof_type: crewed
+weap_type: gun
+barrels: 1
+ROF: 880
+PTS: 0
+RIE: 1
+eff_range: 2500
+muzzle_vel: 1100
+accuracy: 0.7
+reliability: 0.9
+guidance: none
+sp_arty: none
+arty_charges: 0

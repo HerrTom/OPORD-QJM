@@ -15,3 +15,8 @@ reliability: 0.9
 guidance: wire # Guided can be none, beam, wire, command, radar
 sp_arty: none # can be none, enclosed, open
 arty_charges: 0
+# ATGM only factors, can be left off
+penetration: 600
+min_range: 75
+enhancement_accuracy: 1.1 # between 1.0 and 1.3, if p(h) is higher than normal
+enhancement_other: 1.0 # between 1.0 and 1.3, ability to track through obstacles and obscurant

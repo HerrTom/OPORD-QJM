@@ -6,6 +6,7 @@ import logging
 from qjm import EquipmentOLICategory, VehicleCategory
 
 GLOBAL_DISPERSION = 4000
+GUIDANCE_TYPES = ['radar', 'beam', 'wire', 'fire and forget']
 
 # load in interpolation arrays
 RF_CAL = []
@@ -51,6 +52,10 @@ class Weapon:
         self.d_reliability = data.get('reliability', 0)
         self.d_sp_arty = data.get('sp_arty', 'none') 
         self.d_missile_guidance = data.get('guidance', 'no')  # Guided can be no, beam, wire, command, radar
+        self.d_min_range = data.get('min_range', 0)
+        self.d_penetration = data.get('penetration', None)
+        self.d_ENa = data.get('enhancement_accuracy', 1)
+        self.d_ENo = data.get('enhancement_other', 1)
         self.d_barrels = data.get('barrels', 1)
         self.d_charges = data.get('arty_charges', 0)
 
@@ -136,6 +141,19 @@ class Weapon:
             self.q_GE = 2.0
         else:
             self.q_GE = 1.0
+
+        # ATGM factors
+        if self.d_missile_guidance in GUIDANCE_TYPES:
+            self.q_MRN = 1 - (0.19*(self.d_min_range-100)/100)
+            if self.d_penetration > 500:
+                self.q_PEN = 1 + (.01 * np.sqrt(self.d_penetration - 500))
+            else:
+                self.q_PEN = 1 - (.01 * np.sqrt(500-self.d_penetration))
+            self.q_VEL = 1 + (.001 * (self.d_muzzle_vel - 400))
+        else:
+            self.q_MRN = 1
+            self.q_PEN = 1
+            self.q_VEL = 1
         
         # Multiple barrel weapons effect (MBE)
         self.q_MBE = 0
@@ -150,9 +168,12 @@ class Weapon:
             if self.q_MCE > 1.15:
                 self.q_MCE = 1.15
 
-        self.q_OLI = (self.q_RF * self.q_PTS * self.q_RIE * self.q_RN * \
-                        self.q_A * self.q_RL * self.q_SME * self.q_MBE * \
-                        self.q_MCE * self.q_GE / GLOBAL_DISPERSION)
+        self.q_OLI = (self.q_RF * self.q_PTS * self.q_RIE * self.q_RN *
+                        self.q_A * self.q_RL * self.q_SME * self.q_MBE *
+                        self.q_MCE * self.q_GE * 
+                        self.q_MRN * self.q_PEN * self.q_VEL *
+                        self.d_ENa * self.d_ENo / GLOBAL_DISPERSION)
+                        
 
     def __repr__(self):
         return "Weapon({})".format(self.name)

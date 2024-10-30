@@ -12,6 +12,11 @@ eff_range: 4000
 muzzle_vel: 208
 accuracy: 0.9
 reliability: 0.9
-guidance: beam # Guided can be none, beam, wire, command, radar
+guidance: fire and forget # Guided can be none, beam, wire, command, radar
 sp_arty: none # can be none, enclosed, open
 arty_charges: 0
+# ATGM only factors, can be left off
+penetration: 700
+min_range: 200
+enhancement_accuracy: 1.1 # between 1.0 and 1.3, if p(h) is higher than normal
+enhancement_other: 1.2 # between 1.0 and 1.3, ability to track through obstacles and obscurant
