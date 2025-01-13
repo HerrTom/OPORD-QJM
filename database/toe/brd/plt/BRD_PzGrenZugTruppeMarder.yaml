@@ -1,6 +1,6 @@
 name: Panzergrenadier Zug Truppe (Marder) # Name of the TO&E to be used for display
 nation: BRD
-sidc: '10061000121800009800' # Single Identifier Code, used to generate the APP-6D standard symbol
+sidc: '10031000121800009800' # Single Identifier Code, used to generate the APP-6D standard symbol
 id: TOEWG000002 # ID code that can be referenced by other formations
 subunits: null # List of ID codes that this TO&E uses as a subunit
 personnel: # List of personnel roles and their ranks.
