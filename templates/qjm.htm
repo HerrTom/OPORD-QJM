@@ -6,6 +6,7 @@
   <title>OPORD-QJM Simulation UI</title>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.11.1/dist/full.min.css" rel="stylesheet" type="text/css" />
   <link rel="stylesheet" href="node_modules/modern-normalize/modern-normalize.css">
+  <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
   <style>
     .draggable {
       cursor: grab;
@@ -23,7 +24,23 @@
       grid-template-columns: repeat(2, 1fr);
       gap: 10px;
     }
+    .tree-list {
+      list-style-type: none;
+      padding-left: 0;
+    }
+    
+    .node {
+        margin: 5px 0;
+        cursor: pointer;
+    }
+    
+    .children-list {
+        list-style-type: none;
+        padding-left: 20px; /* Indent child nodes */
+    }
+
   </style>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body onload="init()">
 <div class="navbar bg-base-100">
@@ -45,6 +62,7 @@
       <button class="btn btn-primary w-full mb-4" disabled>Casualty Replacement</button>
       <button class="btn btn-primary w-full mb-4" onclick="exportOrbatMapper()">Export to OrbatMapper</button>
       <button class="btn btn-primary w-full mb-4" onclick="saveState()">Save Scenario</button>
+      <button id="snapshotButton" class="btn btn-primary m-2">Take Snapshot</button>
     </aside>
   <!-- Main Content -->
   <div class="flex-grow p-4">
@@ -52,10 +70,8 @@
     <div role="tablist" class="tabs tabs-bordered">
       <input type="radio" name="qjm_steps" role="tab" class="tab" aria-label="A. Attacking & Defending Units" checked/>
       <div role="tabpanel" class="tab-content p-10">
-        <h2 class="mb-4 text-2xl font-extrabold leading-none tracking-tight text-gray-900 dark:text-white pt-4">Available Units</h2>
-        <div id="factions" class="factions-grid"></div>
-        <h2 class="mb-4 text-2xl font-extrabold leading-none tracking-tight text-gray-900 dark:text-white pt-4">Units in Combat</h2>
-        <div class="container px-4 grid grid-cols-2">
+        <div class="container px-4 grid grid-cols-3">
+          <div id="unit-tree-container" class="droppable m-4 flex-auto">Available Units</div>
           <div id="attackers" class="droppable m-4 flex-auto">Attackers</div>
           <div id="defenders" class="droppable m-4 flex-auto">Defenders</div>
         </div>
@@ -319,6 +335,24 @@
           <button class="btn btn-success m-2" onclick="sendData();battleResultsModal.showModal()">Simulate</button>
         </div>
       </div>
+
+      <input type="radio" name="qjm_steps" role="tab" class="tab" aria-label="F. Map" />
+      <div role="tabpanel" class="tab-content p-10">
+        <h2 class="mb-4 text-2xl font-extrabold">Map Interface</h2>
+        <div class="flex">
+          <!-- Units List -->
+          <div id="map-units-list" class="droppable m-4 flex-auto">
+            <ul class="tree-list">
+              <!-- Example Unit -->
+              <li class="node draggable">Unit 1</li>
+              <li class="node draggable">Unit 2</li>
+              <!-- ...more units... -->
+            </ul>
+          </div>
+          <!-- Map Container -->
+          <div id="map" class="flex-auto" style="height: 500px;"></div>
+        </div>
+      </div>
     </div>
   </div>
   </div>
@@ -357,208 +391,19 @@
 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+<script src="{{ url_for('static', filename='qjm_tree.js') }}"></script>
+<script src="{{ url_for('static', filename='qjm_data.js') }}"></script>
+<!-- <script src="{{ url_for('static', filename='qjm_units.js') }}"></script>
+<script src="{{ url_for('static', filename='drag_drop.js') }}"></script> -->
+<script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
 <script>
-  function init() {
-    populateUnits();
-    populateAirUnits();
-    setupDragDrop();
-  }
-  const factionsContainer = document.getElementById('factions');
-  const airFactionsContainer = document.getElementById('air_factions');
-  var draggable = false;
-  function addDragEventListeners(unitDiv) {
-  unitDiv.addEventListener('dragstart', (e) => {
-    e.dataTransfer.setData('text', e.target.dataset.unitId);
-  });
-  unitDiv.addEventListener('dragend', (e) => {
-    const data = e.dataTransfer.getData('text');
-    //const draggedUnit = document.querySelector('.draggable[data-unit-id={$data}]');
-    if (!draggable) {
-      const draggableUnits = document.querySelectorAll('.draggable');
-      draggableUnits.forEach(unit => {
-        if (unit.dataset.unitId === data) {
-          // Find the original parent based on the dataset
-          const originalParentName = unit.dataset.originalParent;
-          const originalParents = Array.from(factionsContainer.children).concat(Array.from(airFactionsContainer.children));
-          const originalParentDiv = originalParents.find(div => div.querySelector('h3').textContent === originalParentName);
-          if (originalParentDiv) {
-            originalParentDiv.appendChild(unit);
-          }
-        }
-      });
-    }
-    draggable = false;
-    // reset all droppable styles
-    document.querySelectorAll('.droppable').forEach(drop => {
-      drop.classList.remove('accepts-drop');
-    });
-  });
-}
-
-function populateUnits() {
-  fetch('/qjm/get_units')
-    .then(response => response.json())
-    .then(data => {
-      const factions = data;
-
-      factions.forEach(faction => {
-        const factionDiv = document.createElement('div');
-        factionDiv.innerHTML = `<h3>${faction.name}</h3>`;
-        factionDiv.className = 'font-extrabold grid-cols-1';
-        faction.units.forEach(unit => {
-          const unitDiv = createUnitDiv(unit, faction.name);
-          factionDiv.appendChild(unitDiv);
-        });
-        factionsContainer.appendChild(factionDiv);
-      });
-    })
-    .catch(error => console.error('Error fetching units:', error));
-}
-
-
-function populateAirUnits() {
-  const factions = [
-    { name: 'Faction 1', units: [
-      {'id': '7', 'name': 'MiG-21PFM (2x S-13)', 'sidc': '30030100001101040000'}, 
-      {'id': '8', 'name': 'Su-25 (6x FAB-100)', 'sidc': '30030100001101020000'}
-    ]},
-    { name: 'Faction 2', units: [
-      {'id': '9', 'name': 'MiG-21PFM (4x S-5)', 'sidc': '30030100001101040000'}, 
-      {'id': '10', 'name': 'Su-25 (4x FAB-100, 2x S-25)', 'sidc': '30030100001101020000'}
-    ]},
-    { name: 'Faction 3', units: [
-      {'id': '11', 'name': 'MiG-21PFM (2x S-8)', 'sidc': '30030100001101040000'}, 
-      {'id': '12', 'name': 'Su-25 (4x FAB-250)', 'sidc': '30030100001101020000'}
-    ]}
-  ];
-
-  factions.forEach(faction => {
-    const factionDiv = document.createElement('div');
-    factionDiv.innerHTML = `<h3>${faction.name} (Air)</h3>`;
-    factionDiv.className = 'font-extrabold grid-cols-1';
-    faction.units.forEach(unit => {
-      const unitDiv = createUnitDiv(unit, `${faction.name} (Air)`, true);
-      factionDiv.appendChild(unitDiv);
-    });
-    airFactionsContainer.appendChild(factionDiv);
-  });
-}
-
-function createUnitDiv(unit, factionName, isAirUnit = false) {
-  const unitDiv = document.createElement('div');
-  unitDiv.className = 'draggable border m-1 p-1 font-normal flex justify-between';
-  unitDiv.dataset.unitId = unit.id;
-  unitDiv.dataset.originalParent = factionName;
-  unitDiv.draggable = true;
-  var symbol = new ms.Symbol(unit.sidc, {size: 20, outlineWidth: 2, fillColor: unit.color}).asCanvas().toDataURL();
-  unitDiv.innerHTML = isAirUnit
-    ? `<div><img src=${symbol} style="display: inline"/> ${unit.name} </div><input class="input input-sm" type="number" value="0" size="8"></input>`
-    : `<div><img src=${symbol} style="display: inline"/> ${unit.name} </div><button class="btn btn-xs m-2 justify-self-end" onclick="showFormationDetails('${unit.id}');formationModal.showModal()">More</button>`;
-  addDragEventListeners(unitDiv);
-  return unitDiv;
-}
-
-function setupDragDrop() {
-  const droppables = document.querySelectorAll('.droppable');
-  droppables.forEach(droppable => {
-    droppable.addEventListener('dragover', (e) => {
-      draggable = true;
-      droppable.classList.add('accepts-drop');
-      e.preventDefault();
-    });
-    droppable.addEventListener('dragenter', (e) => {
-      draggable = false;
-      droppable.classList.remove('accepts-drop');
-      e.preventDefault();
-    });
-    droppable.addEventListener('dragleave', (e) => {
-      draggable = false;
-      droppable.classList.remove('accepts-drop');
-      e.preventDefault();
-    });
-    droppable.addEventListener('drop', (e) => {
-      e.preventDefault();
-      draggable = true;
-      const data = e.dataTransfer.getData('text');
-      const unit = document.querySelector(`.draggable[data-unit-id="${data}"]`);
-      if (unit) {
-        e.target.appendChild(unit);
-      }
-      getPersonnelCount();
-    });
-  });
-  const draggables = document.querySelectorAll('.d')
-}
-
-function sendData(commit=false) {
-  // Collect data from inputs
-  const data = {
-    attackers: Array.from(document.querySelectorAll('#attackers .draggable')).map(el => el.dataset.unitId),
-    defenders: Array.from(document.querySelectorAll('#defenders .draggable')).map(el => el.dataset.unitId),
-    air_attackers: Array.from(document.querySelectorAll('#air_attackers .draggable')).map(el => el.dataset.unitId),
-    air_defenders: Array.from(document.querySelectorAll('#air_defenders .draggable')).map(el => el.dataset.unitId),
-    terrain: document.getElementById('terrain').value,
-    season: document.getElementById('Season').value,
-    weather: document.getElementById('weather').value,
-    posture: document.getElementById('posture').value,
-    defFrontage: document.getElementById('defFrontage').value,
-    airsuperiority: document.getElementById('airsuperiority').value,
-    atksurprise: document.getElementById('atksurprise').value,
-    atksurprisedays: document.getElementById('atksurprisedays').value,
-    atkcev: document.getElementById('atkcev').value,
-    defcev: document.getElementById('defcev').value,
-    battleDate: document.getElementById('battle_date').value,
-  };
-
-  // Send data to Flask server via AJAX
-  console.log(commit)
-  if (commit) {
-    fetch('/commit_battle', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
-    .then(response => response.json())
-    .then(result => {
-      console.log('Success:', result);
-      // Handle success response
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      // Handle error response
-    });
-
-  } else {
-    fetch('/simulate_battle', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
-    .then(response => response.json())
-    .then(result => {
-      console.log('Success:', result);
-      // Handle success response
-      // Populate the modal with the simulation results
-      const battleResultsContent = document.getElementById('battleResultsContent');
-      battleResultsContent.innerHTML = `
-          <p><strong>Power Ratio:</strong> ${result.powerRatio.toFixed(2)}</p>
-          <p><strong>Attacker Power:</strong> ${result.powerAtk.toLocaleString('en-US', {maximumFractionDigits:0})}</p>
-          <p><strong>Defender Power:</strong> ${result.powerDef.toLocaleString('en-US', {maximumFractionDigits:0})}</p>
-          <p><strong>Attacker Personnel Casualty Rate:</strong> ${(result.atkPersCasualtyRate*100).toFixed(1)}%</p>
-          <p><strong>Attacker Tank Casualty Rate:</strong> ${(result.atkTankCasualtyRate*100).toFixed(1)}%</p>
-          <p><strong>Defender Personnel Casualty Rate:</strong> ${(result.defPersCasualtyRate*100).toFixed(1)}%</p>
-          <p><strong>Defender Tank Casualty Rate:</strong> ${(result.defTankCasualtyRate*100).toFixed(1)}%</p>
-        `;
-      })
-    .catch(error => {
-      console.error('Error:', error);
-      // Handle error response
-    });
-  };
+function init() {
+  // Initialize the tree view
+  initTree();
+  // Initialize the battle date
+  document.getElementById('battle_date').valueAsDate = new Date();
+  initMap();
+  initDragAndDrop();
 }
 
 function updateCevDisplay() {
@@ -566,82 +411,6 @@ function updateCevDisplay() {
   document.getElementById('defcevdisplay').innerText = document.getElementById('defcev').value;
 };
 
-function getPersonnelCount() {
-  const data = {
-    attackers: Array.from(document.querySelectorAll('#attackers .draggable')).map(el => el.dataset.unitId),
-    defenders: Array.from(document.querySelectorAll('#defenders .draggable')).map(el => el.dataset.unitId),
-  };
-  // Send data to Flask server via AJAX
-  fetch('/get_personnel', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  })
-  .then(response => response.json())
-  .then(result => {
-    console.log('Success:', result);
-    // Handle success response
-    // calculate the defender density
-    const defFrontage = document.getElementById('defFrontage').value;
-    const defDensity = result['defenders'] / (1000 * defFrontage);
-    document.getElementById('defDensity').value = defDensity.toFixed(1);
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    // Handle error response
-  });
-}
-
-function showFormationDetails(unitId) {
-  // Fetch the formation data from the server or use a preloaded JavaScript object
-  fetch(`/get_formation/${unitId}`)
-    .then(response => response.json())
-    .then(data => {
-      const formationDetails = document.getElementById('formationDetails');
-      formationDetails.innerHTML = ''; // Clear existing details
-
-      // Populate the modal with formation data
-      const nameDiv = document.createElement('div');
-      nameDiv.innerHTML = `<strong>Name:</strong> <input type="text" value="${data.name}" id="formationName" class="input input-bordered w-full"/>`;
-      formationDetails.appendChild(nameDiv);
-
-      const factionDiv = document.createElement('div');
-      factionDiv.innerHTML = `<strong>Faction:</strong> <input type="text" value="${data.faction}" id="formationFaction" class="input input-bordered w-full"/>`;
-      formationDetails.appendChild(factionDiv);
-
-      const personnelDiv = document.createElement('div');
-      personnelDiv.innerHTML = `<strong>Personnel:</strong> <input type="number" value="${data.personnel}" id="formationPersonnel" class="input input-bordered w-full" disabled/>`;
-      formationDetails.appendChild(personnelDiv);
-
-      const oliDiv = document.createElement('div');
-      oliDiv.innerHTML = `<strong>OLI:</strong> <input type="number" value="${data.oli.toFixed(0)}" id="formationOLI" class="input input-bordered w-full" disabled/>`;
-      formationDetails.appendChild(oliDiv);
-
-      // Show the modal
-      document.getElementById('formationModal').classList.remove('hidden');
-    })
-    .catch(error => console.error('Error fetching formation details:', error));
-};
-
-function exportOrbatMapper() {
-  fetch('/export_orbatmapper', {method: 'POST'})
-    .then(response => response.json())
-    .then(result => {
-      console.log('Exported to OrbatMapper:', result);
-    })
-    .catch(error => console.error('Error exporting to OrbatMapper:', error));
-};
-
-function saveState() {
-  fetch('/save_scenario_state', {method: 'POST'})
-    .then(response => response.json())
-    .then(result => {
-      console.log('Saved scenario state:', result);
-    })
-    .catch(error => console.error('Error exporting to OrbatMapper:', error));
-};
 
 document.getElementById('saveChanges').addEventListener('click', () => {
   // Gather updated formation data and send it to the server
@@ -681,6 +450,84 @@ document.getElementById('saveChanges').addEventListener('click', () => {
   })
   .catch(error => console.error('Error updating formation:', error));
 });
+
+document.getElementById('snapshotButton').addEventListener('click', function() {
+    const battleDate = document.getElementById('battle_date').value;
+    fetch('/snapshot', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ date: battleDate })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === 'success') {
+            alert('Snapshot taken successfully!');
+        } else {
+            alert('Failed to take snapshot.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred.');
+    });
+});
+
+// Initialize Maplibre map
+function initMap() {
+  const map = new maplibregl.Map({
+    container: 'map',
+    style: 'https://demotiles.maplibre.org/style.json', // Replace with desired style
+    center: [0, 0],
+    zoom: 2
+  });
+
+  // Store units on the map
+  const mapUnits = {};
+
+  // Handle drop event
+  map.on('load', () => {
+    map.getCanvas().addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+
+    map.getCanvas().addEventListener('drop', (e) => {
+      e.preventDefault();
+      const unitId = e.dataTransfer.getData('text/plain');
+      const unitName = document.querySelector(`[data-unit-id='${unitId}']`).textContent;
+      const rect = map.getCanvas().getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const lngLat = map.unproject([x, y]);
+
+      // Add marker
+      const marker = new maplibregl.Marker({ draggable: true })
+        .setLngLat(lngLat)
+        .addTo(map);
+
+      // Right-click to remove
+      marker.getElement().addEventListener('contextmenu', () => {
+        marker.remove();
+        delete mapUnits[unitId];
+      });
+
+      // Store marker
+      mapUnits[unitId] = marker;
+    });
+  });
+}
+
+// Initialize drag events for units
+function initDragAndDrop() {
+  const draggables = document.querySelectorAll('.draggable');
+  draggables.forEach(draggable => {
+    draggable.setAttribute('draggable', true);
+    draggable.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', draggable.textContent);
+    });
+  });
+}
 </script>
 <script src=" https://cdn.jsdelivr.net/npm/milsymbol@2.2.0/dist/milsymbol.min.js "></script>
 <script src="https://cdn.tailwindcss.com"></script>
