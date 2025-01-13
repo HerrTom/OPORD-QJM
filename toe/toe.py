@@ -59,6 +59,8 @@ class Formation:
                 new_pers.assign_equipment(nsns)
                 self.personnel.append(new_pers)
 
+        self.status_history = {}
+
     def __repr__(self,):
         return f'Formation({self.shortname}/{self.parent_shortname}, {self.nation})'
 
@@ -100,7 +102,7 @@ class Formation:
                 all_equipment += crew.equipment
         return all_equipment
     
-    def get_qjm_equipment(self,):
+    def get_qjm_equipment(self, recursive=True):
         """ Get all QJM equipment in the formation. """
         qjm_equipment = []
         for veh in self.vehicles:
@@ -109,43 +111,45 @@ class Formation:
                 qjm_equipment += crew.get_qjm_equipment()
         for pers in self.personnel:
             qjm_equipment += pers.get_qjm_equipment()
-        for sub in self.subunits:
-            qjm_equipment += sub.get_qjm_equipment()
+        if recursive:
+            for sub in self.subunits:
+                qjm_equipment += sub.get_qjm_equipment()
         return qjm_equipment
 
-    def get_all_personnel(self,):
+    def get_all_personnel(self, recursive=True):
         all_personnel = []
-        # add subunit equipment
-        for sub in self.subunits:
-            sub_personnel = sub.get_all_personnel()
-            all_personnel += sub_personnel
+        if recursive:
+            # add subunit equipment
+            for sub in self.subunits:
+                sub_personnel = sub.get_all_personnel()
+                all_personnel += sub_personnel
         for pers in self.personnel:
             all_personnel += [pers]
         for veh in self.vehicles:
             for crew in veh.crew:
                 all_personnel += [crew]
         return all_personnel
-    
+
     # FUNCTIONS FOR QJM INTEGRATION
-    def count_personnel(self,):
+    def count_personnel(self, recursive=True):
         N_personnel = 0
-        personnel = self.get_all_personnel()
+        personnel = self.get_all_personnel(recursive)
         for p in personnel:
             if p.status == ElementStatus.ACTIVE:
                 N_personnel += 1
         return N_personnel
-    
+
     def count_vehicles(self,):
         vehicles = {}
         # TODO: Need to get equipment by vehicle types
         return vehicles
-    
+
     def count_equipment(self,):
         equipment = {}
         # TODO: Need to get equipment by type
         return equipment
     
-    def get_oli(self,):
+    def get_oli(self, recursive=True):
         # returns OLI statistics about formation
         oli = FormationOLI()  # Default is all zeros
         for veh in self.vehicles:
@@ -155,9 +159,41 @@ class Formation:
         for pers in self.personnel:
             logging.debug(f'{pers.name} has OLI {pers.get_oli()}')
             oli += pers.get_oli()
-        for sub in self.subunits:
-            oli += sub.get_oli()
+        if recursive:
+            for sub in self.subunits:
+                oli += sub.get_oli()
         return oli
+
+    def snapshot(self, datecode: str):
+        """Capture the current status of the formation."""
+        self.status_history[datecode] = {
+            'Personnel': {},
+            'Equipment': {}
+        }
+
+        # Capture Personnel status
+        for pers in self.personnel:
+            type_key = pers.rank
+            if type_key not in self.status_history[datecode]['Personnel']:
+                self.status_history[datecode]['Personnel'][type_key] = {'Assigned': 0, 'Available': 0}
+            if pers.status == ElementStatus.ACTIVE:
+                self.status_history[datecode]['Personnel'][type_key]['Available'] += 1
+            # Assigned include all personnel in the unit, active or not
+            self.status_history[datecode]['Personnel'][type_key]['Available'] += 1
+
+        # Capture Equipment status
+        for veh in self.vehicles:
+            equipment_type = veh.equipment.name
+            if equipment_type not in self.status_history[datecode]['Equipment']:
+                self.status_history[datecode]['Equipment'][equipment_type] = {'Assigned': 0, 'Available': 0}
+            if veh.status == ElementStatus.ACTIVE:
+                self.status_history[datecode]['Equipment'][equipment_type]['Available'] += 1
+            # Assigned includes all vehicles in the unit, active or not
+            self.status_history[datecode]['Equipment'][equipment_type]['Assigned'] += 1
+
+        # Recursively capture status for subunits
+        for sub in self.subunits:
+            sub.snapshot(datecode)
 
 
 class TOE:

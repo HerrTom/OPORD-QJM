@@ -1,7 +1,5 @@
 from flask import Flask, render_template, jsonify, request, redirect
-from flask_socketio import SocketIO, emit
-import socket
-import json
+from flask_socketio import SocketIO
 
 from qjm import Wargame
 
@@ -9,13 +7,16 @@ app = Flask(__name__)
 socketio = SocketIO(app)
 wargame = Wargame()
 
+
 @app.route("/")
 def default_page():
     return render_template('index.htm')
 
+
 @app.route("/qjm/")
-def qjm_setup():# Communicate with qjm.py to get formation data
+def qjm_setup():  # Communicate with qjm.py to get formation data
     return render_template('qjm.htm')
+
 
 @app.route('/load_scenario/<scenario>')
 def load_scenario(scenario):
@@ -26,54 +27,62 @@ def load_scenario(scenario):
         # TODO: Make a better error page
         return redirect("/", code=302)
 
+
 @app.route("/qjm/get_units", methods=['GET'])
 def get_units():
-    formations = wargame.get_formations()
-    # formations = json.loads(response)
-    print(formations)
-    return formations
+    formations = wargame.get_formations_as_tree()
+    return jsonify(formations)
+
 
 @app.route('/simulate_battle', methods=['POST'])
 def simulate_battle():
     data = request.json
     # run the simulation function
-    results = wargame.simulate_battle(data)
+    results = wargame.simulate_battle(data, recursive=False)
     return jsonify(results)
+
 
 @app.route('/commit_battle', methods=['POST'])
 def commit_battle():
     data = request.json
     # run the simulation function
-    wargame.simulate_battle(data, commit=True)
+    wargame.simulate_battle(data, recursive=False, commit=True)
     return jsonify({'status': 'committed'})
+
 
 @app.route('/export_orbatmapper', methods=['POST'])
 def export_orbatmapper():
     status = wargame.export_orbatmapper('toe.json')
     return jsonify({'status': status})
 
+
 @app.route('/save_scenario_state', methods=['POST'])
 def save_scenario_state():
     wargame.save_sim_state('./wargames/saves/scenario_save.sav')
     return jsonify({'status': True})
+
 
 @app.route('/load_scenario_state')
 def load_scenario_state():
     wargame.load_sim_state('./wargames/saves/scenario_save.sav')
     return redirect("/qjm/", code=302)
 
+
 @app.route('/get_personnel', methods=['POST'])
 def get_personnel():
     data = request.json
-    # Process the data as needed
-    print(data)  # For debugging
     defenders = 0
     attackers = 0
     for u in data['defenders']:
-        defenders += wargame.formationsById[u].count_personnel()
+        defender = wargame.get_formation(formation_id=u)
+        if defender is not None:
+            defenders += defender.count_personnel(recursive=False)
     for u in data['attackers']:
-        attackers += wargame.formationsById[u].count_personnel()
+        attacker = wargame.get_formation(formation_id=u)
+        if attacker is not None:
+            attackers += attacker.count_personnel(recursive=False)
     return jsonify({'defenders': defenders, 'attackers': attackers})
+
 
 @app.route('/get_formation/<unit_id>', methods=['GET'])
 def get_formation(unit_id):
@@ -89,20 +98,28 @@ def get_formation(unit_id):
     else:
         return jsonify({'error': 'Formation not found'}), 404
 
+
 @app.route('/update_formation', methods=['POST'])
 def update_formation():
     data = request.json
     formation = wargame.formationsByName.get(data['name'])
-    print(data)
     if formation:
-        # Update formation details
-        # formation.name = data['name'] # This is in the data but should not change.
-        # formation.faction = data['faction'] # This is in the data but should not change.
         formation.personnel = int(data['personnel'])
 
         return jsonify({'status': 'success'})
     else:
         return jsonify({'error': 'Formation not found'}), 404
+
+
+@app.route('/snapshot', methods=['POST'])
+def snapshot():
+    data = request.json
+    battle_date = data.get('date')
+    if battle_date:
+        success = wargame.formation_snapshot(battle_date)
+        if success:
+            return jsonify({'status': 'success'})
+    return jsonify({'status': 'failure'}), 400
 
 
 if __name__ == "__main__":

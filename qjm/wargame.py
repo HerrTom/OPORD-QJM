@@ -2,10 +2,10 @@ import pickle
 import yaml
 import logging
 from glob import glob
+import datetime
 
 from toe import Formation, TOE_Database
 
-from .weapon import Weapon
 from .vehicle import Vehicle
 from .equipment_database import EquipmentDatabase
 from .factors import (
@@ -20,7 +20,6 @@ from .factors import (
     STRENGTH_SIZE_ARMOUR_FACTORS)
 from .qjm_data_classes import (CasualtyRates,
                                FormationOLI,
-                               EquipmentOLICategory,
                                VehicleCategory,
                                BattleData)
 
@@ -38,11 +37,13 @@ with open('debug.log', 'w') as f:
 GLOBAL_TOE_DATABASE = TOE_Database()
 GLOBAL_TOE_DATABASE.load_database()
 
+
 class Wargame:
     def __init__(self):
         # import the database info
-        self.equipment_database = EquipmentDatabase('./database/weapons', './database/vehicles')
-        
+        self.equipment_database = EquipmentDatabase('./database/weapons',
+                                                    './database/vehicles')
+
         # init the formation container
         self.formations = {}
         self.formationsByName = {}
@@ -50,7 +51,7 @@ class Wargame:
 
         # flag for scenario loading
         self.scenario_loaded = False
-    
+
     def load_scenario(self, scenario):
         if self.scenario_loaded:
             # clear the formations
@@ -92,9 +93,25 @@ class Wargame:
                 self.formations[form.faction].append(form)
             self.formationsByName.update({form.name: form})
             self.formationsById.update({form.id: form})
-            print(self.formations)
+            # Add subunits to the formationsById dictionary
+            for subunit in form.subunits:
+                self._add_subunits(subunit)
+
+            # Flag the scenario as loaded!
             self.scenario_loaded = True
         return True
+
+    def _add_subunits(self, formation):
+        """Recursively adds subunits to the formationsById dictionary."""
+        self.formationsById.update({formation.id: formation})
+        for subunit in formation.subunits:
+            self._add_subunits(subunit)
+
+    def get_formation(self, formation_id=None):
+        if formation_id is not None:
+            return self.formationsById.get(formation_id, None)
+        else:
+            return None
 
     def get_formations(self):
         response = []
@@ -102,21 +119,65 @@ class Wargame:
             print(faction)
             faction_response = {'name': faction, 'units': []}
             for form in self.formations[faction]:
-                faction_response['units'].append({'id': form.id, 'name': form.name, 'sidc': form.sidc, 'color': form.color})
+                faction_response['units'].append({'id': form.id,
+                                                  'name': form.name,
+                                                  'sidc': form.sidc,
+                                                  'color': form.color})
             response.append(faction_response)
         return response
-    
+
+    def get_formations_as_tree(self):
+        tree = []
+        DEFAULT_SIDC = "30031000000000000000"  # Default SIDC for factions
+
+        # Loop through factions
+        for faction_name, formations in self.formations.items():
+            # Initialize faction node
+            faction_node = {
+                "name": faction_name,
+                "sidc": DEFAULT_SIDC,
+                "children": [],
+                "id": "faction-" + faction_name,
+            }
+
+            # Add each top-level formation in the faction
+            for formation in formations:
+                formation_node = self._build_formation_node(formation)
+                faction_node["children"].append(formation_node)
+
+            tree.append(faction_node)
+
+        return tree
+
+    def _build_formation_node(self, formation):
+        """Recursively builds a formation node and its subunits."""
+        node = {
+            "id": formation.id,
+            "name": formation.name,
+            "sidc": formation.sidc,
+            "children": []
+        }
+
+        # Recursively add subunits
+        for subunit in formation.subunits:
+            subunit_node = self._build_formation_node(subunit)
+            node["children"].append(subunit_node)
+
+        return node
+
     def export_orbatmapper(self, filename):
         """Exports the current scenario to Orbatmapper format."""
         units = [self.formationsById[x] for x in self.formationsById]
         GLOBAL_TOE_DATABASE.to_orbatmapper(filename, units=units)
         return True
-    
-    def simulate_battle(self, battle_input, commit=False):
+
+    def simulate_battle(self, battle_input, recursive=True, commit=False):
         """Simulates the battle using the QJM method.
 
         Args:
-            battle_input (dict): Dictionary with all battle data information (TBD)
+            battle_input (dict): Dictionary with all battle data information
+            recursive (bool): If True, the function will include all subunits in the battle
+            commit (bool): If True, the function will commit the losses to the formations
         """
 
         atk_land_units = battle_input['attackers']
@@ -143,56 +204,58 @@ class Wargame:
         print(battle_data)
 
         # calculate force strength
-        # S = ((Ws + Wmg + Whw) * r_n) + (Wgi * rn) + ((Wg + Wgy) * (rwg * hwg * zwg * wyg)) + (Wi * rwi * hwi) + (Wy * rwy * hwy * zyw * wyy)
+        # S = ((Ws + Wmg + Whw) * r_n) + (Wgi * rn) +
+        # ((Wg + Wgy) * (rwg * hwg * zwg * wyg)) + 
+        # (Wi * rwi * hwi) + (Wy * rwy * hwy * zyw * wyy)
         atk_oli = FormationOLI()
         def_oli = FormationOLI()
         
-        Na = 0 # personnel strength
-        Nd = 0 # personnel strength
-        Nia = 0 # armour strength
-        Nid = 0 # armour strength
-        Ja = 0 # vehicle strength
-        Jd = 0 # vehicle strength
+        Na = 0  # personnel strength
+        Nd = 0  # personnel strength
+        Nia = 0  # armour strength
+        Nid = 0  # armour strength
+        Ja = 0  # vehicle strength
+        Jd = 0  # vehicle strength
 
         # J factors (only vehicles other than tanks):
         J_unarmoured = 1
         J_armoured = 2
-        J_air = 10 # only organic
+        J_air = 10  # only organic
         
         # gather OLI values from each formation
         for a in atk_land_units:
-            atk_oli += self.formationsById[a].get_oli()
+            atk_oli += self.formationsById[a].get_oli(recursive=recursive)
             # calculate Na
-            Na += self.formationsById[a].count_personnel()
+            Na += self.formationsById[a].count_personnel(recursive=recursive)
             # Calculate Ja
-            for equip in self.formationsById[a].get_qjm_equipment():
-                if type(equip) == Vehicle:
+            for equip in self.formationsById[a].get_qjm_equipment(recursive=recursive):
+                if isinstance(equip, Vehicle):
                     if equip.qjm_vehicle_category in [VehicleCategory.armoured_car,
                                                       VehicleCategory.truck,
                                                       VehicleCategory.arv]:
                         Ja += J_unarmoured
                     elif equip.qjm_vehicle_category in [VehicleCategory.apc,
-                                                 VehicleCategory.ifv,
-                                                 VehicleCategory.artillery]:
+                                                        VehicleCategory.ifv,
+                                                        VehicleCategory.artillery]:
                         Ja += J_armoured
                     elif equip.qjm_vehicle_category in [VehicleCategory.combat_air_support,
-                                                 VehicleCategory.fighter,
-                                                 VehicleCategory.bomber,
-                                                 VehicleCategory.helicopter]:
+                                                        VehicleCategory.fighter,
+                                                        VehicleCategory.bomber,
+                                                        VehicleCategory.helicopter]:
                         # only count organic aviation assets
                         Ja += J_air
                     elif equip.qjm_vehicle_category in [VehicleCategory.tank]:
                         Nia += 1
  
         for d in def_land_units:
-            oli = self.formationsById[d].get_oli()
+            oli = self.formationsById[d].get_oli(recursive=recursive)
             def_oli += oli
             # calculate Nd
-            Nd += self.formationsById[d].count_personnel()
+            Nd += self.formationsById[d].count_personnel(recursive=recursive)
             # Calculate Jd
-            for equip in self.formationsById[a].get_qjm_equipment():
+            for equip in self.formationsById[a].get_qjm_equipment(recursive=recursive):
                 print(equip)
-                if type(equip) == Vehicle:
+                if isinstance(equip, Vehicle):
                     if equip.qjm_vehicle_category in [VehicleCategory.armoured_car,
                                                       VehicleCategory.truck,
                                                       VehicleCategory.arv]:
@@ -211,13 +274,17 @@ class Wargame:
                         Nid += 1
         # correct values of antitank, antiaircraft, and aircraft by enemy values
         if atk_oli.antitank > def_oli.armour:
-            atk_oli.antitank = def_oli.armour + 0.5 * (atk_oli.antitank - def_oli.armour)
+            atk_oli.antitank = def_oli.armour + 0.5 * (atk_oli.antitank -
+                                                       def_oli.armour)
         if def_oli.antitank > atk_oli.armour:
-            def_oli.antitank = atk_oli.armour + 0.5 * (def_oli.antitank - atk_oli.armour)
+            def_oli.antitank = atk_oli.armour + 0.5 * (def_oli.antitank -
+                                                       atk_oli.armour)
         if atk_oli.antiair > def_oli.aircraft:
-            atk_oli.antiair = def_oli.aircraft + 0.5 * (atk_oli.antiair - def_oli.aircraft)
+            atk_oli.antiair = def_oli.aircraft + 0.5 * (atk_oli.antiair -
+                                                        def_oli.aircraft)
         if def_oli.antiair > atk_oli.aircraft:
-            def_oli.antiair = atk_oli.aircraft + 0.5 * (def_oli.antiair - atk_oli.aircraft)
+            def_oli.antiair = atk_oli.aircraft + 0.5 * (def_oli.antiair -
+                                                        atk_oli.aircraft)
         atk_ground_firepower = atk_oli.calc_total() - atk_oli.aircraft
         def_ground_firepower = def_oli.calc_total() - def_oli.aircraft
 
@@ -614,3 +681,12 @@ class Wargame:
         sitrep_file = f"{dtg}_sitrep.txt"
         with open(f"./wargames/saves/sitrep/{sitrep_file}", "a+") as file:
             file.write("\n".join(sitrep) + "\n\n")
+
+    def formation_snapshot(self, battle_date):
+        try:
+            for formation in self.formationsById:
+                formation.take_snapshot(battle_date)
+            return True
+        except Exception as e:
+            logging.error(f'Failed to take snapshot: {e}')
+            return False
