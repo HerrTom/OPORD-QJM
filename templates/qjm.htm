@@ -39,6 +39,20 @@
         padding-left: 20px; /* Indent child nodes */
     }
 
+    /* Ensure the page fits the window */
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+
+    .flex.h-screen {
+      height: 100vh;
+    }
+
+    .flex-grow.p-4 {
+      overflow: auto;
+    }
+
   </style>
   <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
@@ -62,7 +76,7 @@
       <button class="btn btn-primary w-full mb-4" disabled>Casualty Replacement</button>
       <button class="btn btn-primary w-full mb-4" onclick="exportOrbatMapper()">Export to OrbatMapper</button>
       <button class="btn btn-primary w-full mb-4" onclick="saveState()">Save Scenario</button>
-      <button id="snapshotButton" class="btn btn-primary m-2">Take Snapshot</button>
+      <button id="snapshotButton" class="btn btn-primary w-full mb-4">Take Snapshot</button>
     </aside>
   <!-- Main Content -->
   <div class="flex-grow p-4">
@@ -341,16 +355,12 @@
         <h2 class="mb-4 text-2xl font-extrabold">Map Interface</h2>
         <div class="flex">
           <!-- Units List -->
-          <div id="map-units-list" class="droppable m-4 flex-auto">
+          <div id="map-units-list" class="m-4" style="width: 20%;">
             <ul class="tree-list">
-              <!-- Example Unit -->
-              <li class="node draggable">Unit 1</li>
-              <li class="node draggable">Unit 2</li>
-              <!-- ...more units... -->
             </ul>
           </div>
           <!-- Map Container -->
-          <div id="map" class="flex-auto" style="height: 500px;"></div>
+          <div id="map" class="flex-auto" style="width: 80%; height: 70vh;"></div>
         </div>
       </div>
     </div>
@@ -397,20 +407,82 @@
 <script src="{{ url_for('static', filename='drag_drop.js') }}"></script> -->
 <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
 <script>
+var map; // Declare map globally
+
 function init() {
   // Initialize the tree view
   initTree();
   // Initialize the battle date
   document.getElementById('battle_date').valueAsDate = new Date();
   initMap();
-  initDragAndDrop();
+  
+  // Add event listener for date change
+  document.getElementById('battle_date').addEventListener('change', handleDateChange);
+}
+
+function handleDateChange(event) {
+  const selectedDate = event.target.value;
+  fetch(`/get_snapshots/${selectedDate}`)
+    .then(response => response.json())
+    .then(data => {
+      // Clear existing markers
+      
+      //Object.values(mapUnits).forEach(marker => marker.remove());
+      //mapUnits = {};
+      console.log(data);
+
+      // Place units at their snapshot locations
+      data.formations.forEach(formation => {
+        if (mapUnits[formation.id]) {
+          mapUnits[formation.id].remove();
+          delete mapUnits[formation.id];
+        }
+        if (formation.location) {
+          getFormationById(formation.id)
+            .then(unit => {
+              // Create marker with existing functionality
+              const markerEl = document.createElement('div');
+              markerEl.dataset.unitId = formation.id;
+              if (unit.sidc) {
+                const symbol = new ms.Symbol(unit.sidc, { size: 25, uniqueDesignation: unit.shortname });
+                const canvas = symbol.asCanvas();
+                const iconURL = canvas.toDataURL();
+                markerEl.style.backgroundImage = `url(${iconURL})`;
+                const size = symbol.getSize();
+                markerEl.style.width = size.width + 'px';
+                markerEl.style.height = size.height + 'px';
+              } else {
+                markerEl.style.width = '20px';
+                markerEl.style.height = '20px';
+                markerEl.style.backgroundColor = '#FF0000';
+                markerEl.style.borderRadius = '50%';
+              }
+              markerEl.style.cursor = 'grab';
+  
+              // Create marker and add to map
+              const marker = new maplibregl.Marker({ element: markerEl, draggable: true })
+                .setLngLat([formation.location.lng, formation.location.lat])
+                .addTo(map);
+  
+              // Add right-click to remove
+              marker.getElement().addEventListener('contextmenu', (event) => {
+                event.preventDefault();
+                marker.remove();
+                delete mapUnits[formation.id];
+              });
+  
+              mapUnits[formation.id] = marker;
+            });
+        }
+      });
+    })
+    .catch(error => console.error('Error fetching snapshots:', error));
 }
 
 function updateCevDisplay() {
   document.getElementById('atkcevdisplay').innerText = document.getElementById('atkcev').value;
   document.getElementById('defcevdisplay').innerText = document.getElementById('defcev').value;
 };
-
 
 document.getElementById('saveChanges').addEventListener('click', () => {
   // Gather updated formation data and send it to the server
@@ -453,12 +525,13 @@ document.getElementById('saveChanges').addEventListener('click', () => {
 
 document.getElementById('snapshotButton').addEventListener('click', function() {
     const battleDate = document.getElementById('battle_date').value;
+    const unitLocations = captureUnitLocations();
     fetch('/snapshot', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ date: battleDate })
+        body: JSON.stringify({ date: battleDate, unitLocations: unitLocations })
     })
     .then(response => response.json())
     .then(data => {
@@ -474,17 +547,42 @@ document.getElementById('snapshotButton').addEventListener('click', function() {
     });
 });
 
+
+// Global variable to store map units
+var mapUnits = {};
+
 // Initialize Maplibre map
 function initMap() {
-  const map = new maplibregl.Map({
+  map = new maplibregl.Map({
     container: 'map',
-    style: 'https://demotiles.maplibre.org/style.json', // Replace with desired style
+    style: {
+      "version": 8,
+      "sources": {
+        "osm-tiles": {
+          "type": "raster",
+          "tiles": [
+            "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          ],
+          "tileSize": 256,
+          "attribution": '© OpenStreetMap contributors'
+        }
+      },
+      "layers": [
+        {
+          "id": "osm-tiles",
+          "type": "raster",
+          "source": "osm-tiles",
+          "minzoom": 0,
+          "maxzoom": 19
+        }
+      ]
+    },
     center: [0, 0],
     zoom: 2
   });
 
-  // Store units on the map
-  const mapUnits = {};
 
   // Handle drop event
   map.on('load', () => {
@@ -494,20 +592,56 @@ function initMap() {
 
     map.getCanvas().addEventListener('drop', (e) => {
       e.preventDefault();
-      const unitId = e.dataTransfer.getData('text/plain');
-      const unitName = document.querySelector(`[data-unit-id='${unitId}']`).textContent;
+      const unitId = e.dataTransfer.getData('unitId');
+      console.log('Dropped unit ID:', unitId);
+      const sidc = e.dataTransfer.getData('sidc');
+      const shortname = e.dataTransfer.getData('shortname');
       const rect = map.getCanvas().getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
       const lngLat = map.unproject([x, y]);
 
-      // Add marker
-      const marker = new maplibregl.Marker({ draggable: true })
+      if (mapUnits[unitId]) {
+        alert('Unit is already on the map.');
+        return;
+      }
+
+      // Generate MilSymbol icon if SIDC is available
+      let iconURL = '';
+      let size;
+      if (sidc) {
+        const symbol = new ms.Symbol(sidc, { size: 25, uniqueDesignation: shortname });
+        const canvas = symbol.asCanvas()
+        iconURL = canvas.toDataURL();
+        size = symbol.getSize();
+      }
+
+      // Create marker element
+      const markerEl = document.createElement('div');
+      markerEl.dataset.unitId = unitId; // Add this line
+      if (iconURL) {
+        markerEl.style.backgroundImage = `url(${iconURL})`;
+        markerEl.style.width = size.width + 'px';
+        markerEl.style.height = size.height + 'px'; // Increased height to accommodate icon
+        markerEl.style.backgroundSize = 'contain';
+        markerEl.style.cursor = 'grab';
+      } else {
+        // Fallback if SIDC is not available
+        markerEl.style.width = '20px';
+        markerEl.style.height = '20px';
+        markerEl.style.backgroundColor = '#FF0000';
+        markerEl.style.borderRadius = '50%';
+        markerEl.style.cursor = 'grab';
+      }
+
+      // Create marker with the element
+      const marker = new maplibregl.Marker({ element: markerEl, draggable: true, anchor: 'center' })
         .setLngLat(lngLat)
         .addTo(map);
 
       // Right-click to remove
-      marker.getElement().addEventListener('contextmenu', () => {
+      marker.getElement().addEventListener('contextmenu', (event) => {
+        event.preventDefault();
         marker.remove();
         delete mapUnits[unitId];
       });
@@ -518,16 +652,44 @@ function initMap() {
   });
 }
 
-// Initialize drag events for units
-function initDragAndDrop() {
-  const draggables = document.querySelectorAll('.draggable');
-  draggables.forEach(draggable => {
-    draggable.setAttribute('draggable', true);
-    draggable.addEventListener('dragstart', (e) => {
-      e.dataTransfer.setData('text/plain', draggable.textContent);
-    });
-  });
+// Create a draggable icon element (if needed elsewhere)
+function createDraggableIcon(iconURL) {
+  const el = document.createElement('div');
+  el.style.backgroundImage = `url(${iconURL})`;
+  el.style.width = '60px';
+  el.style.height = '60px';
+  el.style.backgroundSize = '100%';
+  el.style.cursor = 'grab';
+  return el;
 }
+
+// Function to capture unit locations before taking a snapshot
+function captureUnitLocations() {
+  const units = Object.values(mapUnits); // Retrieve units on the map
+  // Log the IDs of each unit for testing
+  console.log('Unit IDs:', units.map(unit => unit.getElement().dataset.unitId));
+  const unitLocations = units.map(unit => ({
+    id: unit.getElement().dataset.unitId, // Each unit element has a data attribute for unit ID
+    coordinates: unit.getLngLat() // Get the coordinates of the unit
+  }));
+  return unitLocations;
+}
+
+// Function to get unit information by id
+function getFormationById(formationId) {
+  return fetch('/get_formation/' + formationId) // Return the promise
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to fetch formation data');
+      }
+      return response.json(); // Parse the JSON data
+    })
+    .catch(error => {
+      console.error(error); // Log the error
+      throw error; // Rethrow the error to let the caller handle it
+    });
+}
+
 </script>
 <script src=" https://cdn.jsdelivr.net/npm/milsymbol@2.2.0/dist/milsymbol.min.js "></script>
 <script src="https://cdn.tailwindcss.com"></script>

@@ -135,6 +135,7 @@ class Wargame:
             # Initialize faction node
             faction_node = {
                 "name": faction_name,
+                "shortname": faction_name,
                 "sidc": DEFAULT_SIDC,
                 "children": [],
                 "id": "faction-" + faction_name,
@@ -154,6 +155,7 @@ class Wargame:
         node = {
             "id": formation.id,
             "name": formation.name,
+            "shortname": formation.shortname,
             "sidc": formation.sidc,
             "children": []
         }
@@ -682,11 +684,26 @@ class Wargame:
         with open(f"./wargames/saves/sitrep/{sitrep_file}", "a+") as file:
             file.write("\n".join(sitrep) + "\n\n")
 
-    def formation_snapshot(self, battle_date):
-        try:
-            for formation in self.formationsById:
-                formation.take_snapshot(battle_date)
-            return True
-        except Exception as e:
-            logging.error(f'Failed to take snapshot: {e}')
-            return False
+    def formation_snapshot(self, battle_date, unit_locations):
+        for formation in self.formationsById.values():
+            # Check the unit_locations report to see if any match the formation
+            location = None
+            for unit in unit_locations:
+                if unit['id'] == formation.id:
+                    location = unit['coordinates']
+                    break
+            formation.snapshot(battle_date, location)
+        return True
+
+    def get_snapshots(self, battle_date):
+        """Retrieve snapshots for all formations on a specific battle_date."""
+        snapshots = []
+        for formation in self.formationsById.values():
+            snapshot = formation.get_snapshot(battle_date)
+            if snapshot is not None:
+                if snapshot['location'] is not None:
+                    snapshots.append({
+                        'id': formation.id,
+                        'location': snapshot['location']
+                    })
+        return {'formations': snapshots}

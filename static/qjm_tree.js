@@ -9,6 +9,7 @@ async function fetchUnits() {
 async function initTree() {
     const unitsData = await fetchUnits();
     renderTreeList("unit-tree-container", unitsData);
+    renderTreeList("map-units-list", unitsData); // Populate map-units-list
     setupDragDrop();
 }
 
@@ -24,6 +25,9 @@ function renderTreeList(containerId, data) {
         li.setAttribute('id', nodeData.id); // Set unique ID
         li.setAttribute('data-unit-id', nodeData.id); // Set unique data-unit-id
         li.setAttribute('data-initial-parent-id', parentID); // Set initial parent ID
+        // Store SIDC as a data attribute
+        li.setAttribute('data-sidc', nodeData.sidc || "30031000000000000000");
+        li.setAttribute('data-shortname', nodeData.shortname);
 
         // Toggle functionality to expand/collapse children
         li.addEventListener('click', (event) => {
@@ -96,8 +100,11 @@ function addDragEventListeners(unitDiv) {
     unitDiv.addEventListener('dragstart', (e) => {
         e.stopPropagation(); // Prevent event bubbling to parent droppables
         e.dataTransfer.setData('unitId', unitDiv.dataset.unitId);
-        e.dataTransfer.setData('originalParentId', unitDiv.dataset.initialParentId || 'tree');
-        console.log(`Drag Start - Unit ID: ${unitDiv.dataset.unitId}, Original Parent: ${unitDiv.dataset.initialParentId || 'tree'}`);
+        const parentId = unitDiv.parentElement.id;
+        e.dataTransfer.setData('originalParentId', parentId); // Set originalParentId
+        e.dataTransfer.setData('sidc', unitDiv.dataset.sidc);
+        e.dataTransfer.setData('shortname', unitDiv.dataset.shortname);
+        console.log(`Drag Start - Unit ID: ${unitDiv.dataset.unitId}, SIDC: ${unitDiv.dataset.sidc || 'N/A'}`);
     });
 
     unitDiv.addEventListener('dragend', (e) => {
@@ -107,14 +114,15 @@ function addDragEventListeners(unitDiv) {
 
         if (!droppedOnValidArea) {
             console.log('Resetting unit position');
-            const originalParent = originalParentId === 'tree' ? document.getElementById('unit-tree-container') : document.getElementById(originalParentId);
-            const unitId = e.dataTransfer.getData('unitId');
-            const unit = document.querySelector(`[data-unit-id="${unitId}"]`);
-            // Get the <ul> element under the unit
-            const unitList = originalParent.querySelector('ul');
-            console.log(unitList);
-            console.log(unit);
-            if (unit) unitList.appendChild(unit);
+            // Handle case where originalParentId might be null
+            if (originalParentId) {
+                const originalParent = originalParentId === 'tree' ? document.getElementById('unit-tree-container') : document.getElementById(originalParentId);
+                const unitId = e.dataTransfer.getData('unitId');
+                const unit = document.querySelector(`[data-unit-id="${unitId}"]`);
+                if (unit && originalParent) unit.parentElement.appendChild(unit);
+            } else {
+                console.warn('originalParentId is null. Cannot reset unit position.');
+            }
         }
         resetDropHighlight();
     });

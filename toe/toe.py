@@ -164,36 +164,46 @@ class Formation:
                 oli += sub.get_oli()
         return oli
 
-    def snapshot(self, datecode: str):
+    def snapshot(self, datecode: str, location: list = None):
         """Capture the current status of the formation."""
         self.status_history[datecode] = {
-            'Personnel': {},
-            'Equipment': {}
+            'personnel': {},
+            'equipment': {},
+            'location': location
         }
 
         # Capture Personnel status
         for pers in self.personnel:
             type_key = pers.rank
-            if type_key not in self.status_history[datecode]['Personnel']:
-                self.status_history[datecode]['Personnel'][type_key] = {'Assigned': 0, 'Available': 0}
+            if type_key not in self.status_history[datecode]['personnel']:
+                self.status_history[datecode]['personnel'][type_key] = {'assigned': 0, 'available': 0}
             if pers.status == ElementStatus.ACTIVE:
-                self.status_history[datecode]['Personnel'][type_key]['Available'] += 1
+                self.status_history[datecode]['personnel'][type_key]['available'] += 1
             # Assigned include all personnel in the unit, active or not
-            self.status_history[datecode]['Personnel'][type_key]['Available'] += 1
+            self.status_history[datecode]['personnel'][type_key]['available'] += 1
 
         # Capture Equipment status
         for veh in self.vehicles:
             equipment_type = veh.equipment.name
-            if equipment_type not in self.status_history[datecode]['Equipment']:
-                self.status_history[datecode]['Equipment'][equipment_type] = {'Assigned': 0, 'Available': 0}
+            if equipment_type not in self.status_history[datecode]['equipment']:
+                self.status_history[datecode]['equipment'][equipment_type] = {'assigned': 0, 'available': 0}
             if veh.status == ElementStatus.ACTIVE:
-                self.status_history[datecode]['Equipment'][equipment_type]['Available'] += 1
+                self.status_history[datecode]['equipment'][equipment_type]['available'] += 1
             # Assigned includes all vehicles in the unit, active or not
-            self.status_history[datecode]['Equipment'][equipment_type]['Assigned'] += 1
+            self.status_history[datecode]['equipment'][equipment_type]['assigned'] += 1
 
         # Recursively capture status for subunits
         for sub in self.subunits:
             sub.snapshot(datecode)
+
+    def get_snapshot(self, datecode: str):
+        """Retrieve the status of the formation at a specific datecode."""
+        snap = self.status_history.get(datecode, None)
+        # Debugging logic
+        if snap is not None:
+            if snap['location'] is not None:
+                logging.debug(f"{self.shortname} is located at {snap['location']} on {datecode}")
+        return snap
 
 
 class TOE:

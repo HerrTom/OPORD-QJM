@@ -94,6 +94,9 @@ def get_formation(unit_id):
             'oli': oli.calc_total(),
             'faction': formation.faction,
             'personnel': formation.count_personnel(),
+            'sidc': formation.sidc,            
+            'shortname': formation.shortname,
+            'unit_id': formation.id,
         })
     else:
         return jsonify({'error': 'Formation not found'}), 404
@@ -115,11 +118,19 @@ def update_formation():
 def snapshot():
     data = request.json
     battle_date = data.get('date')
+    unit_locations = data.get('unitLocations', [])
     if battle_date:
-        success = wargame.formation_snapshot(battle_date)
+        success = wargame.formation_snapshot(battle_date, unit_locations)
         if success:
             return jsonify({'status': 'success'})
+    
     return jsonify({'status': 'failure'}), 400
+
+
+@app.route('/get_snapshots/<date>')
+def get_snapshots(date):
+    snapshots = wargame.get_snapshots(date)
+    return jsonify(snapshots)
 
 
 if __name__ == "__main__":
