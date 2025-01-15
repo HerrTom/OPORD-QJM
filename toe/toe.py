@@ -19,6 +19,7 @@ class Formation:
         self.name = name
         self.shortname = shortname
         self.parent_shortname = parent_shortname
+        self.fullshortname = f'{shortname}/{parent_shortname}/'
         self.nation = toe.nation
         self.sidc = toe.sidc
         self.id = str(uuid4())
@@ -37,7 +38,7 @@ class Formation:
         if len(toe.subunits) > 0:
             count = 1
             for sub in toe.subunits:
-                new_sub = self.copy_toe(str(count)+'/'+shortname, str(count)+'/'+shortname, sub, nsns)
+                new_sub = self.copy_toe(str(count)+'/'+shortname, str(count), sub, nsns)
                 self.subunits.append(new_sub)
                 count += 1
         else:
@@ -65,7 +66,7 @@ class Formation:
         return f'Formation({self.shortname}/{self.parent_shortname}, {self.nation})'
 
     def copy_toe(self, name, shortname, toe, nsns):
-        return Formation(name, shortname, self.shortname, toe, nsns, self.faction)
+        return Formation(name, shortname, self.fullshortname, toe, nsns, self.faction)
     
     def add_qjm_weapons(self, equipment_db):
         """ Assign QJM equipment to all personnel and vehicles in the formation. """
@@ -537,7 +538,7 @@ class TOE_Database:
                 "exportedDate": now
             },
             "name": name,
-            "startTime": 1723402800000,
+            "startTime": start_time.isoformat().replace('+00:00','') + 'Z',
             "timeZone": "America/Los_Angeles",
             "description": "OPORD-QJM Export",
             "symbologyStandard": "app6",

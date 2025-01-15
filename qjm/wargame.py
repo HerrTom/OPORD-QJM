@@ -564,10 +564,10 @@ class Wargame:
               '  Defender: {:.2f}% pers {:.2f}% tanks {:.2f}% artillery\n'.format(cd*100, cid*100, cgd*100) +
               '      Factors: P{:,.2f} S{:,.2f} Arm{:,.2f}\n'.format(cd_power, cd_strength, cd_arm) +
               '             {:,.0f}/{:,.0f} personnel | {:,.0f}/{:,.0f} armour\n'.format(cd*Nd, Nd, cid*Nid, Nid) +
-              'Advance Rates:\n'
+              'Advance Rates:'
               )
         for key in adv:
-            print('  {}: {}'.format(key, adv[key]))
+            print('  {}: {:.1f} km/day'.format(key, adv[key]))
         
         if commit:
             # send casualty data to the formations

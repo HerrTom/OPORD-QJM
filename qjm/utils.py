@@ -4,7 +4,7 @@ import yaml
 
 
 def gist(content):
-    with open('../token.yaml', 'r') as f:
+    with open('./token.yaml', 'r') as f:
         data = yaml.safe_load(f)
     token = data['token']
     gist_id = data['gist_id']
