@@ -65,6 +65,66 @@ class InterpolatingLookupTable(LookupTable):
         x1, y1 = self.name[pos], self.data[pos]
         return y0 + (y1 - y0) * (key - x0) / (x1 - x0)
 
+class AdvanceRateTable():
+    """Lookup table for advance rates.
+        This is unique due to the semi-3d nature of the data"""
+    def __init__(self, file_path):
+        self.power_ratios = []
+        self.headers = []
+        self.hasty = []
+        self.prepared = []
+        self.fortified = []
+        
+        with open(file_path) as f:
+            reader = csv.reader(f, delimiter=',')
+            self.headers = next(reader)[2:]  # Skip 'Power Ratio' and 'Defense' columns
+            
+            for row in reader:
+                ratio = float(row[0])
+                defense_type = row[1]
+                values = [float(x) for x in row[2:]]
+                
+                if defense_type == 'Hasty Defense':
+                    self.power_ratios.append(ratio)
+                    self.hasty.append(values)
+                elif defense_type == 'Prepared Defense':
+                    self.prepared.append(values)
+                elif defense_type == 'Fortified Defense':
+                    self.fortified.append(values)
+
+    def get_advance_rate(self, power_ratio, defense_type, unit_type=None):
+        """Get the advance rate for given parameters using interpolation"""
+        # Select correct defense array
+        if defense_type == 'Hasty Defense':
+            values = self.hasty
+        elif defense_type == 'Prepared Defense':
+            values = self.prepared
+        elif defense_type == 'Fortified Defense':
+            values = self.fortified
+        else:
+            raise ValueError("Invalid defense type")
+
+        # If unit_type is None, return a dictionary with all unit types
+        if unit_type is None:
+            return {unit: self.get_advance_rate(power_ratio, defense_type, unit)
+                    for unit in self.headers}
+        # Get unit type index
+        unit_index = self.headers.index(unit_type)
+        
+        # Find interpolation position
+        pos = bisect.bisect_left(self.power_ratios, power_ratio)
+        
+        # Handle edge cases
+        if pos == 0:
+            return values[0][unit_index]
+        if pos == len(self.power_ratios):
+            return values[-1][unit_index]
+            
+        # Interpolate
+        x0, x1 = self.power_ratios[pos-1], self.power_ratios[pos]
+        y0, y1 = values[pos-1][unit_index], values[pos][unit_index]
+        
+        return y0 + (y1 - y0) * (power_ratio - x0) / (x1 - x0)
 
 # Create the needed data tables
 TERRAIN_FACTORS = StandardLookupTable('./database/tables/TerrainFactors.csv')
@@ -77,3 +137,4 @@ AIR_SUPERIORITY_FACTORS = StandardLookupTable('./database/tables/AirSuperiorityF
 OPPOSITION_FACTORS = InterpolatingLookupTable('./database/tables/OppositionFactor.csv')
 STRENGTH_SIZE_FACTORS = InterpolatingLookupTable('./database/tables/StrengthSize.csv')
 STRENGTH_SIZE_ARMOUR_FACTORS = InterpolatingLookupTable('./database/tables/StrengthSizeArmour.csv')
+ADVANCE_RATE = AdvanceRateTable('./database/tables/AdvanceRates.csv')

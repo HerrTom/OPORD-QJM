@@ -17,12 +17,13 @@ from .factors import (
     AIR_SUPERIORITY_FACTORS,
     OPPOSITION_FACTORS,
     STRENGTH_SIZE_FACTORS,
-    STRENGTH_SIZE_ARMOUR_FACTORS)
+    STRENGTH_SIZE_ARMOUR_FACTORS,
+    ADVANCE_RATE)
 from .qjm_data_classes import (CasualtyRates,
                                FormationOLI,
                                VehicleCategory,
                                BattleData)
-
+from .utils import gist
 
 # Setup debug logging to an empty file
 logging.basicConfig(
@@ -49,6 +50,12 @@ class Wargame:
         self.formationsByName = {}
         self.formationsById = {}
 
+        # Init scenario data
+        self.scenario_name = None
+        self.current_date = datetime.datetime.now() # This gets updated
+        self.dispersion = 1000
+
+
         # flag for scenario loading
         self.scenario_loaded = False
 
@@ -71,6 +78,9 @@ class Wargame:
         factions = wargameRules['factions']
         colors = [factions[x]['color'] for x in factions]
         self.dispersion = wargameRules['dispersion_factor']
+        # Set the scenario date
+        self.current_date = wargameRules['start_date']
+        print(self.current_date)
         # load formations
         for f in glob(scenario+'/formations/**/*.yml', recursive=True):
             # Extract parameters from yaml file for better readability
@@ -169,8 +179,17 @@ class Wargame:
 
     def export_orbatmapper(self, filename):
         """Exports the current scenario to Orbatmapper format."""
-        units = [self.formationsById[x] for x in self.formationsById]
-        GLOBAL_TOE_DATABASE.to_orbatmapper(filename, units=units)
+        # units are just the top level formations
+        units = [self.formations[faction] for faction in self.formations]
+        # flatten the units list
+        units = [item for sublist in units for item in sublist]
+        GLOBAL_TOE_DATABASE.to_orbatmapper(filename, units=units, 
+                                           start_time=self.current_date,
+                                           name=self.scenario_name)
+        # Also upload the gist
+        with open(filename, 'r') as f:
+            content = f.read()
+        gist(content)
         return True
 
     def simulate_battle(self, battle_input, recursive=True, commit=False):
@@ -522,6 +541,17 @@ class Wargame:
         cid = cd * 3.0 * cd_arm * su_ct * float(battle_input['atkcev'])
         cgd = cd * float(battle_input['atkcev'])
 
+        # Calculate the advance rate
+        # Advance rate depends on the defense type
+        if battle_input['posture'] == 'Prepared Defense':
+            def_type = 'Prepared Defense'
+        elif battle_input['posture'] == 'Fortified Defense':
+            def_type = 'Fortified Defense'
+        else:
+            # Default to hasty defense
+            def_type = 'Hasty Defense'
+        adv = ADVANCE_RATE.get_advance_rate(PRatio, def_type,)
+
         # Print combat data
         print('###### COMBAT RESULTS ########\n' +
               'Power Ratio: {:,.1f}\n'.format(PRatio) +
@@ -533,8 +563,11 @@ class Wargame:
               '      Factors: P{:,.2f} S{:,.2f} Arm{:,.2f}\n'.format(ca_power, ca_strength, ca_arm, Nia) +
               '  Defender: {:.2f}% pers {:.2f}% tanks {:.2f}% artillery\n'.format(cd*100, cid*100, cgd*100) +
               '      Factors: P{:,.2f} S{:,.2f} Arm{:,.2f}\n'.format(cd_power, cd_strength, cd_arm) +
-              '             {:,.0f}/{:,.0f} personnel | {:,.0f}/{:,.0f} armour\n'.format(cd*Nd, Nd, cid*Nid, Nid)
+              '             {:,.0f}/{:,.0f} personnel | {:,.0f}/{:,.0f} armour\n'.format(cd*Nd, Nd, cid*Nid, Nid) +
+              'Advance Rates:\n'
               )
+        for key in adv:
+            print('  {}: {}'.format(key, adv[key]))
         
         if commit:
             # send casualty data to the formations
@@ -554,6 +587,7 @@ class Wargame:
                              'atkTankCasualtyRate': cia,
                              'defPersCasualtyRate': cd,
                              'defTankCasualtyRate': cid,
+                             'advanceRate': adv,
                             }
             return battleResults
 
@@ -693,6 +727,8 @@ class Wargame:
                     location = unit['coordinates']
                     break
             formation.snapshot(battle_date, location)
+            # Update the scenario date
+            self.current_date = datetime.datetime.fromisoformat(battle_date)
         return True
 
     def get_snapshots(self, battle_date):

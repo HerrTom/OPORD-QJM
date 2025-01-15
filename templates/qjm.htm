@@ -70,7 +70,7 @@
         <div class="label">
           <span class="label-text text">Date:</span>
         </div>
-        <input type="date" id="battle_date" class="input input-bordered w-full" />
+        <input type="date" id="battle_date" class="input input-bordered w-full" value="{{ battle_date }}"/>
       </label>
       <button class="btn btn-primary w-full mb-4" disabled>Ammunition Resupply</button>
       <button class="btn btn-primary w-full mb-4" disabled>Casualty Replacement</button>
@@ -412,8 +412,6 @@ var map; // Declare map globally
 function init() {
   // Initialize the tree view
   initTree();
-  // Initialize the battle date
-  document.getElementById('battle_date').valueAsDate = new Date();
   initMap();
   
   // Add event listener for date change
@@ -526,6 +524,7 @@ document.getElementById('saveChanges').addEventListener('click', () => {
 document.getElementById('snapshotButton').addEventListener('click', function() {
     const battleDate = document.getElementById('battle_date').value;
     const unitLocations = captureUnitLocations();
+    console.log(unitLocations);
     fetch('/snapshot', {
         method: 'POST',
         headers: {
@@ -569,6 +568,7 @@ function initMap() {
           "attribution": '© OpenStreetMap contributors'
         }
       },
+      "glyphs": "http://fonts.openmaptiles.org/{fontstack}/{range}.pbf",
       "layers": [
         {
           "id": "osm-tiles",
@@ -648,8 +648,92 @@ function initMap() {
 
       // Store marker
       mapUnits[unitId] = marker;
+      
+      // Add drag events for the marker
+      marker.on('dragstart', () => {
+        window.dragStart = marker.getLngLat();
+      });
+      marker.on('drag', () => {
+        const newLoc = marker.getLngLat();
+        const lineDistance = measureDistance(window.dragStart, newLoc).toFixed(1) + ' km';
+        const midLng = (window.dragStart.lng + newLoc.lng) / 2;
+        const midLat = (window.dragStart.lat + newLoc.lat) / 2;
+        map.getSource('dragLineSource').setData({
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              geometry: {
+                type: 'LineString',
+                coordinates: [
+                  [window.dragStart.lng, window.dragStart.lat],
+                  [newLoc.lng, newLoc.lat]
+                ]
+              }
+            },
+            {
+              type: 'Feature',
+              properties: { distance: lineDistance },
+              geometry: {
+                type: 'Point',
+                coordinates: [midLng, midLat]
+              }
+            }
+          ]
+        });
+      });
+      marker.on('dragend', () => {
+        map.getSource('dragLineSource').setData({ type: 'FeatureCollection', features: [] });
+      });
+    });
+    
+    // Add a GeoJSON source and a line layer to the map to represent the ruler
+    map.addSource('dragLineSource', {
+      type: 'geojson',
+      data: {
+        type: 'FeatureCollection',
+        features: []
+      }
+    });
+    map.addLayer({
+      id: 'dragLineLayer',
+      type: 'line',
+      source: 'dragLineSource',
+      paint: {
+        'line-color': '#FF0000',
+        'line-width': 2
+      }
+    });
+    // Add symbol layer for distance label
+    map.addLayer({
+      id: 'dragLineLabelLayer',
+      type: 'symbol',
+      source: 'dragLineSource',
+      layout: {
+        'text-font': ['Open Sans Bold'],
+        'text-field': ['get', 'distance'],
+        'text-size': 14,
+        'text-offset': [0, 0]
+      },
+      paint: {
+        'text-color': '#FF0000',
+        'text-halo-color': '#FFFFFF',
+        'text-halo-width': 2
+      }
     });
   });
+}
+
+// Haversine formula for distance in kilometers
+function measureDistance(coord1, coord2) {
+  const R = 6371; // Earth radius in km
+  const dLat = (coord2.lat - coord1.lat) * Math.PI / 180;
+  const dLng = (coord2.lng - coord1.lng) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(coord1.lat * Math.PI / 180) * Math.cos(coord2.lat * Math.PI / 180) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
 }
 
 // Create a draggable icon element (if needed elsewhere)

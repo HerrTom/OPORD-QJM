@@ -53,6 +53,7 @@ function sendData(commit=false) {
         // Handle success response
         // Populate the modal with the simulation results
         const battleResultsContent = document.getElementById('battleResultsContent');
+        // loop through result.advanceRate keys and values to present them in the modal
         battleResultsContent.innerHTML = `
             <p><strong>Power Ratio:</strong> ${result.powerRatio.toFixed(2)}</p>
             <p><strong>Attacker Power:</strong> ${result.powerAtk.toLocaleString('en-US', {maximumFractionDigits:0})}</p>
@@ -61,7 +62,11 @@ function sendData(commit=false) {
             <p><strong>Attacker Tank Casualty Rate:</strong> ${(result.atkTankCasualtyRate*100).toFixed(1)}%</p>
             <p><strong>Defender Personnel Casualty Rate:</strong> ${(result.defPersCasualtyRate*100).toFixed(1)}%</p>
             <p><strong>Defender Tank Casualty Rate:</strong> ${(result.defTankCasualtyRate*100).toFixed(1)}%</p>
+            <p><strong>Advance Rates:</strong></p>
             `;
+            for (const [key, value] of Object.entries(result.advanceRate)) {
+                battleResultsContent.innerHTML += `<p>${key}: ${value.toFixed(1)} km/day</p>`;
+            };
         })
         .catch(error => {
         console.error('Error:', error);

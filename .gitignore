@@ -3,6 +3,7 @@ toe.json
 debug.log
 wargames/saves/*
 wargames/saves/sitrep/*
+token.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

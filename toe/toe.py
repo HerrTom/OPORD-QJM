@@ -164,7 +164,7 @@ class Formation:
                 oli += sub.get_oli()
         return oli
 
-    def snapshot(self, datecode: str, location: list = None):
+    def snapshot(self, datecode: str, location: dict = None):
         """Capture the current status of the formation."""
         self.status_history[datecode] = {
             'personnel': {},
@@ -182,15 +182,22 @@ class Formation:
             # Assigned include all personnel in the unit, active or not
             self.status_history[datecode]['personnel'][type_key]['available'] += 1
 
-        # Capture Equipment status
+        # Capture equipment status
+        for pers in self.personnel:
+            for eq in pers.assigned_equipment:
+                if eq not in self.status_history[datecode]['equipment']:
+                    self.status_history[datecode]['equipment'][eq] = {'assigned': 0, 'available': 0}
+                self.status_history[datecode]['equipment'][eq]['assigned'] += 1
+                if pers.status == ElementStatus.ACTIVE:
+                    self.status_history[datecode]['equipment'][eq]['available'] += 1
         for veh in self.vehicles:
-            equipment_type = veh.equipment.name
-            if equipment_type not in self.status_history[datecode]['equipment']:
-                self.status_history[datecode]['equipment'][equipment_type] = {'assigned': 0, 'available': 0}
-            if veh.status == ElementStatus.ACTIVE:
-                self.status_history[datecode]['equipment'][equipment_type]['available'] += 1
-            # Assigned includes all vehicles in the unit, active or not
-            self.status_history[datecode]['equipment'][equipment_type]['assigned'] += 1
+            for eq in veh.assigned_equipment:
+                if eq not in self.status_history[datecode]['equipment']:
+                    self.status_history[datecode]['equipment'][eq] = {'assigned': 0, 'available': 0}
+                if veh.status == ElementStatus.ACTIVE:
+                    self.status_history[datecode]['equipment'][eq]['available'] += 1
+                # Assigned includes all vehicles in the unit, active or not
+                self.status_history[datecode]['equipment'][eq]['assigned'] += 1
 
         # Recursively capture status for subunits
         for sub in self.subunits:
@@ -391,32 +398,30 @@ class TOE_Database:
         equip = []
         equip_dict = {}
         for el in toe_entry.personnel:
-            if el.status == ElementStatus.ACTIVE or el.status == ElementStatus.UNDEFINED:
-                if el.assigned_equipment is None:
-                    for eq in el.equipment:
-                        eq_item = eq.name
-                        if eq_item in equip_dict:
-                            equip_dict[eq_item] += 1
-                        else:
-                            equip_dict[eq_item] = 1
-                else: # this should be a standard formation
-                    for eq in el.assigned_equipment:
-                        if eq in equip_dict:
-                            equip_dict[eq] += 1
-                        else:
-                            equip_dict[eq] = 1
+            if el.assigned_equipment is None:
+                for eq in el.equipment:
+                    eq_item = eq.name
+                    if eq_item in equip_dict:
+                        equip_dict[eq_item] += 1
+                    else:
+                        equip_dict[eq_item] = 1
+            else: # this should be a standard formation
+                for eq in el.assigned_equipment:
+                    if eq in equip_dict:
+                        equip_dict[eq] += 1
+                    else:
+                        equip_dict[eq] = 1
 
         # add crewed equipment
         for veh in toe_entry.vehicles:
-            if veh.status == ElementStatus.ACTIVE or veh.status == ElementStatus.UNDEFINED:
-                if veh.assigned_equipment is None:
-                    eq_item = veh.equipment.name
-                else:
-                    eq_item = veh.assigned_equipment[0]
-                if eq_item in equip_dict:
-                    equip_dict[eq_item] += 1
-                else:
-                    equip_dict[eq_item] = 1
+            if veh.assigned_equipment is None:
+                eq_item = veh.equipment.name
+            else:
+                eq_item = veh.assigned_equipment[0]
+            if eq_item in equip_dict:
+                equip_dict[eq_item] += 1
+            else:
+                equip_dict[eq_item] = 1
                 
         for eq in equip_dict:
             equip.append({'name': eq,
@@ -454,23 +459,45 @@ class TOE_Database:
         # Catch null higherFormation values
         if higher_formation is None:
             higher_formation = ''
-                    
+
+        # Create the state list if the unit is a Formation
+        state = []
+        if isinstance(toe_entry, Formation):
+            for t, entry in toe_entry.status_history.items():
+                if entry['location'] is not None:
+                    lat, lon = entry['location']['lat'], entry['location']['lng']
+                else:
+                    lat, lon = None, None
+                eq_update = []
+                for eq, st in entry['equipment'].items():
+                    eq_update.append({'name': eq,
+                                      'onHand': st['available'],})
+                pers_update = []
+                for pers, st in entry['personnel'].items():
+                    pers_update.append({'name': pers,
+                                        'onHand': st['available'],})
+                state_entry = {'id': self.gen_id(),
+                               't': t+'T12:00:00Z'}
+                if lat is not None:
+                    state_entry.update({'location': [lon, lat],})
+                if len(eq_update) > 0 or len(pers_update) > 0:
+                    state_entry.update({'update': {'equipment': eq_update,
+                                        'personnel': pers_update}})
+                state.append(state_entry)
+        
         unit_json = {'id': unit_json_id,
                      'name': toe_entry.name,
                      'sidc': toe_entry.sidc,
-                     '_pid': parent_json_id, # This is the parent ID
-                     '_gid': group_json_id, # this is the group's ID
-                     '_sid': side_json_id, # this is the side's ID
-                     'state': [],
-                     '_state': {},
-                     '_isOpen': False,
                      'subUnits': subunits,
                      'equipment': equip,
                      'personnel': personnel,
                      'shortName': short_name,
                      'textAmplifiers': {
                          'higherFormation': higher_formation
-                        }
+                        },
+                     'state': state,
+                     'reinforcedStatus': 'None',
+                     'symbolOptions': {},
                      }
         
         
@@ -478,7 +505,8 @@ class TOE_Database:
         
         return unit_json
 
-    def to_orbatmapper(self, filename: str, toe_ids: list = [], units: list = []):
+    def to_orbatmapper(self, filename: str, toe_ids: list = [], units: list = [],
+                       start_time = None, name=None):
         """
         Export the TO&E database to an OrbatMapper JSON file.
 
@@ -490,16 +518,64 @@ class TOE_Database:
 
         from datetime import datetime, timezone
 
-        # Open the template
-        with open('./database/toe/orbat_mapper_template.json', 'r') as f:
-            orbatmapper = json.loads(f.read())
+        now = datetime.now(timezone.utc).isoformat().replace('+00:00', '') + 'Z'
+        if start_time is None:
+            start_time = now
+
+        if name is None:
+            name = 'OPORD-QJM'
+        
+        version = "0.37.0"
+
+        # TEMPLATE #
+        orbatmapper = {
+            "id": "zRHXbiph4w", # ID is fixed
+            "type": "ORBAT-mapper",
+            "version": version,
+            "meta": {
+                "createdDate": now,
+                "exportedDate": now
+            },
+            "name": name,
+            "startTime": 1723402800000,
+            "timeZone": "America/Los_Angeles",
+            "description": "OPORD-QJM Export",
+            "symbologyStandard": "app6",
+            "sides": [],
+            "layers": [
+                {
+                "name": "Features",
+                "id": "3cNAokn3OJ",
+                "features": [],
+                }
+            ],
+            "events": [],
+            "mapLayers": [],
+            "equipment": [],
+            "personnel": [],
+            "supplyCategories": [],
+            "settings": {
+                "rangeRingGroups": [
+                {
+                    "name": "GR1"
+                },
+                {
+                    "name": "GR2"
+                }
+                ],
+                "statuses": [],
+                "supplyClasses": [],
+                "supplyUoMs": [],
+                "map": {
+                    "baseMapId": "osm"
+                }
+            }
+        }
 
         # set the modified dates
-        now = datetime.now(timezone.utc).isoformat().replace('+00:00', '') + 'Z'
         logging.info(f'Created OrbatMapper file dated {now}')
         orbatmapper['meta']['createdDate'] = now
         orbatmapper['meta']['lastModifiedDate'] = now
-        orbatmapper['meta']['exportedDate'] = now
         
         # add the new equipment types
         equips = []
