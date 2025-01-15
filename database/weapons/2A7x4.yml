@@ -1,0 +1,17 @@
+name: 2A7x4
+category: antiair  # can be small arm, machine gun, heavy weapon, antitank, armour, artillery, close air support, or antiair
+crew: 1 # crew is only counted if a weapon is used directly
+calibre: 23
+rof_type: crewed
+weap_type: gun
+barrels: 1
+ROF: 3400
+PTS: 0
+RIE: 1
+eff_range: 2500
+muzzle_vel: 970
+accuracy: 0.8
+reliability: 0.9
+guidance: none
+sp_arty: none
+arty_charges: 0

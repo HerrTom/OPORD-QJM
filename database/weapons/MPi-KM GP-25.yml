@@ -1,0 +1,17 @@
+name: MPi-KM GP-25 # This only represents the grenade launcher due to limitations
+category: small arms  # can be small arm, machine gun, heavy weapon, antitank, armour, artillery, close air support, or antiair
+crew: 1 # crew is only counted if a weapon is used directly
+calibre: 40
+rof_type: handheld
+weap_type: gun
+barrels: 1
+ROF: 20
+PTS: 0
+RIE: 1.0
+eff_range: 400
+muzzle_vel: 76.5
+accuracy: 0.7
+reliability: 0.9
+guidance: none
+sp_arty: none
+arty_charges: 0

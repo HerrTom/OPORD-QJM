@@ -10,6 +10,6 @@ op_range: 500 # operational range, km
 weight: 11.9
 fce: 0.6 # M-60 tank has 0.9
 ammo: 1200 # main gun
-mobility: wheeled # can be tracked, wheeled, halftrack
+mobility: tracked # can be tracked, wheeled, halftrack
 amphibious: amphibious # can be no, amphibious, or snorkel
 ceiling: 0 # for aircraft, in meters
