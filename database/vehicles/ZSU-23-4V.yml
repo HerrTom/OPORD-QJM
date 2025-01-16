@@ -1,4 +1,4 @@
-name: ZSU-23-4
+name: ZSU-23-4V
 category: antiair  # can be small arm, machine gun, heavy weapon, antitank, armour, artillery, close air support, or antiair
 vehicle_type: artillery # tank, armoured car, truck, artillery, arv, ifv, apc, cas, fighter, bomber, helicopter
 crew: 4
@@ -7,7 +7,7 @@ weapons:
 speed: 50 # road speed, kph
 op_range: 500 # operational range, km
 weight: 11.9
-fce: 0.8 # M-60 tank has 0.9
+fce: 0.85 # M-60 tank has 0.9
 ammo: 8000 # main gun
 mobility: tracked # can be tracked, wheeled, halftrack
 amphibious: no # can be no, amphibious, or snorkel

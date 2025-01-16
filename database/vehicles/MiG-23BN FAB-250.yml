@@ -1,0 +1,15 @@
+name: MiG-23BN (FAB-250)
+category: close air support  # can be small arm, machine gun, heavy weapon, antitank, armour, artillery, close air support, or antiair
+vehicle_type: cas # tank, armoured car, truck, artillery, arv, ifv, apc, cas, fighter, bomber, helicopter
+crew: 1
+weapons:
+  - 6x FAB-250
+  - GSh-23L
+speed: 1900 # road speed, kph
+op_range: 550 # operational range, km
+weight: 16.75
+fce: 0.5 # M-60 tank has 0.9
+ammo: 6 # main gun
+mobility: airborne # can be tracked, wheeled, halftrack, airborne
+amphibious: no # can be no, amphibious, or snorkel
+ceiling: 16800 # for aircraft, in meters
