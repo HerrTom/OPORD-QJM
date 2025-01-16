@@ -39,6 +39,6 @@ MSR_333.add_qjm_weapons(edb)
 cr = CasualtyRates(personnel=1, armour=1, artillery=1, attacker=True)
 MSR_333.inflict_losses(cr)
 
-db.to_orbatmapper('toe.json', toe_ids=['TOEEG003001'], units=[])
+db.to_orbatmapper('toe.json', toe_ids=['TOEWG000007'], units=[])
 
 print(edb)

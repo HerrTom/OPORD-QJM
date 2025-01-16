@@ -1,11 +1,16 @@
-
 function sendData(commit=false) {
     // Collect data from inputs
     const data = {
         attackers: Array.from(document.querySelectorAll('#attackers .draggable')).map(el => el.dataset.unitId),
         defenders: Array.from(document.querySelectorAll('#defenders .draggable')).map(el => el.dataset.unitId),
-        air_attackers: Array.from(document.querySelectorAll('#air_attackers .draggable')).map(el => el.dataset.unitId),
-        air_defenders: Array.from(document.querySelectorAll('#air_defenders .draggable')).map(el => el.dataset.unitId),
+        air_attackers: Array.from(document.querySelectorAll('#air_attackers .draggable')).map(el => {
+            const input = el.querySelector('input[type="number"]');
+            return { id: el.dataset.unitId, sorties: input ? parseInt(input.value) : 0 };
+        }),
+        air_defenders: Array.from(document.querySelectorAll('#air_defenders .draggable')).map(el => {
+            const input = el.querySelector('input[type="number"]');
+            return { id: el.dataset.unitId, sorties: input ? parseInt(input.value) : 0 };
+        }),
         terrain: document.getElementById('terrain').value,
         season: document.getElementById('Season').value,
         weather: document.getElementById('weather').value,
@@ -111,6 +116,11 @@ function saveState() {
       .then(response => response.json())
       .then(result => {
         console.log('Saved scenario state:', result);
+        if(result.status) {
+            alert('Saved scenario state!');
+        } else {
+            alert('Failed to save scenario state!');
+        };
       })
       .catch(error => console.error('Error exporting to OrbatMapper:', error));
 };
@@ -121,6 +131,11 @@ function exportOrbatMapper() {
       .then(response => response.json())
       .then(result => {
         console.log('Exported to OrbatMapper:', result);
+        if(result.status) {
+            alert('Successfuly exported OrbatMapper scenario.');
+        } else {
+            alert('Failed to export OrbatMapper scenario!');
+        };
       })
       .catch(error => console.error('Error exporting to OrbatMapper:', error));
   };

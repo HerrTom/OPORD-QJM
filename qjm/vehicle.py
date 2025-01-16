@@ -102,9 +102,13 @@ class Vehicle:
                 for w in weapons:
                     if dw == w.name:
                         d_weaps.append(w)
-        
+            
             for i, w in enumerate(d_weaps):
-                q_weaps += w.q_OLI * 1/(1+i)
+                # Special handling for aircraft, all weapons count 100%
+                if self.vehicle_type in ['cas', 'fighter', 'bomber', 'helicopter']:
+                    q_weaps += w.q_OLI
+                else:
+                    q_weaps += w.q_OLI * 1/(1+i)
 
 
         # mobility effect (MOF)

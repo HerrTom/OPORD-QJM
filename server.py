@@ -15,7 +15,6 @@ def default_page():
 
 @app.route("/qjm/")
 def qjm_setup():  # Communicate with qjm.py to get formation data
-    print(wargame.current_date.strftime('%Y-%m-%d'))
     return render_template('qjm.htm', battle_date=wargame.current_date.strftime('%Y-%m-%d'))
 
 
@@ -34,6 +33,25 @@ def get_units():
     formations = wargame.get_formations_as_tree()
     return jsonify(formations)
 
+@app.route("/qjm/get_air_units", methods=['GET'])
+def get_air_units():
+    air = wargame.aircraft
+    # Reformat the dictionary to be more useful for the front end
+    air_format = []
+    for faction, data in air.items():
+        units = []
+        for unit in data:
+            units.append({
+                'name': unit['name'],
+                'sidc': unit['sidc'],
+                'id': unit['id'],
+                'color': unit['color'],
+                })
+        air_format.append({
+            'name': faction,
+            'units': units,
+        })
+    return jsonify(air_format)
 
 @app.route('/simulate_battle', methods=['POST'])
 def simulate_battle():
@@ -47,8 +65,8 @@ def simulate_battle():
 def commit_battle():
     data = request.json
     # run the simulation function
-    wargame.simulate_battle(data, recursive=False, commit=True)
-    return jsonify({'status': 'committed'})
+    status = wargame.simulate_battle(data, recursive=False, commit=True)
+    return jsonify({'status': status})
 
 
 @app.route('/export_orbatmapper', methods=['POST'])

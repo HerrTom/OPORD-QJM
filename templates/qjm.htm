@@ -403,17 +403,16 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 <script src="{{ url_for('static', filename='qjm_tree.js') }}"></script>
 <script src="{{ url_for('static', filename='qjm_data.js') }}"></script>
-<!-- <script src="{{ url_for('static', filename='qjm_units.js') }}"></script>
-<script src="{{ url_for('static', filename='drag_drop.js') }}"></script> -->
+<script src="{{ url_for('static', filename='qjm_units.js') }}"></script>
 <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
 <script>
 var map; // Declare map globally
 
-function init() {
-  // Initialize the tree view
-  initTree();
+async function init() {
+  await initTree();
   initMap();
-  
+  await initAirUnits();
+  setupDragDrop();
   // Add event listener for date change
   document.getElementById('battle_date').addEventListener('change', handleDateChange);
 }

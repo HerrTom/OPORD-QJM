@@ -6,17 +6,11 @@ factions:
   East Germany:
     color: '#80451b'
     aircraft:
-      - MiG-21M
-      - MiG-23MF
-      - MiG-23ML
-      - MiG-23BN
-      - Su-22M-4
+      - MiG-23BN (FAB-250)
   West Germany:
     color: '#6a7580'
     aircraft:
-      - F-4F
-      - Tornado IDS
-      - Alpha Jet
+      - F-4F (Mk.82)
 
 # QJM Factors
 dispersion_factor: 4000

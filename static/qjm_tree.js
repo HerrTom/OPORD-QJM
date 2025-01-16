@@ -10,7 +10,6 @@ async function initTree() {
     const unitsData = await fetchUnits();
     renderTreeList("unit-tree-container", unitsData);
     renderTreeList("map-units-list", unitsData); // Populate map-units-list
-    setupDragDrop();
 }
 
 let draggable = false;
@@ -100,8 +99,8 @@ function addDragEventListeners(unitDiv) {
     unitDiv.addEventListener('dragstart', (e) => {
         e.stopPropagation(); // Prevent event bubbling to parent droppables
         e.dataTransfer.setData('unitId', unitDiv.dataset.unitId);
-        const parentId = unitDiv.parentElement.id;
-        e.dataTransfer.setData('originalParentId', parentId); // Set originalParentId
+        //const parentId = unitDiv.parentElement.id;
+        e.dataTransfer.setData('originalParentId', unitDiv.dataset.initialParentId); // Set originalParentId
         e.dataTransfer.setData('sidc', unitDiv.dataset.sidc);
         e.dataTransfer.setData('shortname', unitDiv.dataset.shortname);
         console.log(`Drag Start - Unit ID: ${unitDiv.dataset.unitId}, SIDC: ${unitDiv.dataset.sidc || 'N/A'}`);

@@ -519,7 +519,7 @@ class TOE_Database:
 
         from datetime import datetime, timezone
 
-        now = datetime.now(timezone.utc).isoformat().replace('+00:00', '') + 'Z'
+        now = datetime.now(timezone.utc)
         if start_time is None:
             start_time = now
 
@@ -534,8 +534,8 @@ class TOE_Database:
             "type": "ORBAT-mapper",
             "version": version,
             "meta": {
-                "createdDate": now,
-                "exportedDate": now
+                "createdDate": now.isoformat().replace('+00:00', '') + 'Z',
+                "exportedDate": now.isoformat().replace('+00:00', '') + 'Z'
             },
             "name": name,
             "startTime": start_time.isoformat().replace('+00:00','') + 'Z',
@@ -575,8 +575,6 @@ class TOE_Database:
 
         # set the modified dates
         logging.info(f'Created OrbatMapper file dated {now}')
-        orbatmapper['meta']['createdDate'] = now
-        orbatmapper['meta']['lastModifiedDate'] = now
         
         # add the new equipment types
         equips = []

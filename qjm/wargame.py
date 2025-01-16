@@ -80,7 +80,6 @@ class Wargame:
         self.dispersion = wargameRules['dispersion_factor']
         # Set the scenario date
         self.current_date = wargameRules['start_date']
-        print(self.current_date)
         # load formations
         for f in glob(scenario+'/formations/**/*.yml', recursive=True):
             # Extract parameters from yaml file for better readability
@@ -106,9 +105,27 @@ class Wargame:
             # Add subunits to the formationsById dictionary
             for subunit in form.subunits:
                 self._add_subunits(subunit)
-
-            # Flag the scenario as loaded!
-            self.scenario_loaded = True
+        # Load in aircraft
+        aircraft = {}
+        for faction in wargameRules['factions']:
+            aircraft[faction] = wargameRules['factions'][faction]['aircraft']
+        # Create a dictionary of QJM vehicles for the aircraft
+        self.aircraft = {}
+        id_n = 0
+        for faction in aircraft:
+            self.aircraft[faction] = []
+            for a in aircraft[faction]:
+                # Search the equipment database for the aircraft
+                veh = self.equipment_database.get_vehicle(a)
+                if veh is not None:
+                    self.aircraft[faction].append({'name': veh.name,
+                                                   'sidc': '130301000011010500000000000000',
+                                                   'vehicle': veh,
+                                                   'color': wargameRules['factions'][faction]['color'],
+                                                   'id': f'AIR{id_n:04d}'})
+                    id_n += 1
+        # Flag the scenario as loaded!
+        self.scenario_loaded = True
         return True
 
     def _add_subunits(self, formation):
@@ -206,6 +223,25 @@ class Wargame:
         def_land_units = battle_input['defenders']
         def_sorties = battle_input['air_defenders']
 
+        print(atk_sorties)
+        print(def_sorties)
+
+        # Get air units from the sorties
+        aircraft_by_id = {}
+        for fac in self.aircraft:
+            for a in self.aircraft[fac]:
+                aircraft_by_id[a['id']] = a
+        atk_air = []
+        def_air = []
+        
+        for a in atk_sorties:
+            atk_air.append({'aircraft': aircraft_by_id[a['id']]['vehicle'], 'sorties': a['sorties']})
+        for d in def_sorties:
+            def_air.append({'aircraft': aircraft_by_id[d['id']]['vehicle'], 'sorties': d['sorties']})
+
+        print(atk_air, def_air)
+
+        # TODO: Use battle_data in calculations
         battle_data = BattleData(
             terrain=battle_input['terrain'],
             weather=battle_input['weather'],
@@ -221,8 +257,6 @@ class Wargame:
             defenders=battle_input['defenders'],
             air_defenders=battle_input.get('air_defenders', [])
             )
-
-        print(battle_data)
 
         # calculate force strength
         # S = ((Ws + Wmg + Whw) * r_n) + (Wgi * rn) +
@@ -275,7 +309,6 @@ class Wargame:
             Nd += self.formationsById[d].count_personnel(recursive=recursive)
             # Calculate Jd
             for equip in self.formationsById[a].get_qjm_equipment(recursive=recursive):
-                print(equip)
                 if isinstance(equip, Vehicle):
                     if equip.qjm_vehicle_category in [VehicleCategory.armoured_car,
                                                       VehicleCategory.truck,
@@ -293,6 +326,13 @@ class Wargame:
                         Jd += J_air
                     elif equip.qjm_vehicle_category in [VehicleCategory.tank]:
                         Nid += 1
+
+        # Add aircraft sorties
+        for a in atk_air:
+            atk_oli.aircraft += a['aircraft'].q_OLI * a['sorties']
+        for d in def_air:
+            def_oli.aircraft += d['aircraft'].q_OLI * d['sorties']
+
         # correct values of antitank, antiaircraft, and aircraft by enemy values
         if atk_oli.antitank > def_oli.armour:
             atk_oli.antitank = def_oli.armour + 0.5 * (atk_oli.antitank -
