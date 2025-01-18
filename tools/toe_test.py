@@ -2,14 +2,14 @@ import logging
 from qjm import EquipmentDatabase, CasualtyRates
 
 # set a file to write the debug data into
-logging.basicConfig(filename='debug.log', level=logging.DEBUG)
+logging.basicConfig(filename='../debug.log', level=logging.DEBUG)
 
 # clear the debug file before starting
 with open('debug.log', 'w') as f:
     f.write('')
 
 # Load the equipment database
-edb = EquipmentDatabase('database/weapons', 'database/vehicles')
+edb = EquipmentDatabase('../database/weapons', '../database/vehicles')
 
 # Load the TOE database
 from toe import TOE_Database  # Move this import here to avoid circular import
@@ -39,6 +39,6 @@ MSR_333.add_qjm_weapons(edb)
 cr = CasualtyRates(personnel=1, armour=1, artillery=1, attacker=True)
 MSR_333.inflict_losses(cr)
 
-db.to_orbatmapper('toe.json', toe_ids=['TOEWG000007'], units=[])
+db.to_orbatmapper('toe.json', toe_ids=['TOEWG000007', 'TOEWG000006', 'TOEWG000017'], units=[])
 
 print(edb)

@@ -35,9 +35,13 @@ WG020001:
   items:
     - PzF44
 WG020002:
-  name: Antitank Rocket Launcher
+  name: Antitank Guided Missile
   items:
     - MILAN
+WG020003:
+  name: Medium Antitank Rocket Launcher
+  items:
+    - Carl Gustaf
 # WG03XXXX BLOCK FOR COMBAT VEHICLES
 WG030001:
   name: Infantry Fighting Vehicle
@@ -45,5 +49,39 @@ WG030001:
     - SPz Marder 1A2
     - SPz Marder 1A1
     - SPz Marder 1
+WG030002:
+  name: Main Battle Tank
+  items:
+    - Leopard 2A4
+    - Leopard 2
+    - Leopard 1A5
+    - Leopard 1A4
+    - Leopard 1A3
+    - Leopard 1A2
+    - Leopard 1A1
+WG030003:
+  name: Armored Personnel Carrier
+  items:
+    - M113G
+WG030004:
+  name: Self-Propelled Artillery
+  items:
+    - M109G
+WG030005:
+  name: Self-Propelled Mortar
+  items:
+    - Mrs 120/MTW
 # WG04XXXX BLOCK FOR UTILITY VEHICLES
+WG040001:
+  name: Light Utility Vehicle
+  items:
+    - Iltis LKW
+WG040002:
+  name: Medium Utility Vehicle
+  items:
+    - Unimog LKW
+WG040003:
+  name: Heavy Utility Vehicle
+  items:
+    - MAN KAT1
 # WG05XXXX BLOCK FOR ANTIAIRCRAFT WEAPONS

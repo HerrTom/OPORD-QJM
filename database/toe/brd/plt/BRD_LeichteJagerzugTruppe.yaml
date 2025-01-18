@@ -1,14 +1,19 @@
-name: Panzergrenadier Gruppe (Marder) # Name of the TO&E to be used for display
+name: le. Jäger Zugtruppe # Name of the TO&E to be used for display
 nation: BRD
-sidc: '10031000121211020000' # Single Identifier Code, used to generate the APP-6D standard symbol
-id: TOEWG000001 # ID code that can be referenced by other formations
+sidc: '10031000120000009800' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEWG000202 # ID code that can be referenced by other formations
 subunits: null # List of ID codes that this TO&E uses as a subunit
 personnel: # List of personnel roles and their ranks.
-    - Assistant Squad Leader:
-        rank: E-03 Corporal
+    - Platoon Commander:
+        rank: O-01 Lieutenant
         equipment:
             - WG010001
-    - Marksman:
+            - WG010005
+    - Deputy Platoon Commander:
+        rank: E-07 Senior Sergeant
+        equipment:
+            - WG010001
+    - Medic:
         rank: E-01 Private
         equipment:
             - WG010001
@@ -21,26 +26,18 @@ personnel: # List of personnel roles and their ranks.
         equipment:
             - WG010001
             - WG020001
-vehicles:  # list of equipment with crews
-    - WG030001:
-        - Squad Leader:
-            rank: E-06 Sergeant
-            equipment:
-                - WG010001
+vehicles: # list of equipment with crews
+    - WG040002:
         - Driver:
             rank: E-01 Private
             equipment:
                 - WG010002
+    - WG020002:
         - Gunner:
             rank: E-01 Private
             equipment:
-                - WG010002
-    - WG020002:
-        - MILAN Operator:
-            rank: E-01 Private
-            equipment:
                 - WG010001
-        - MILAN Assistant Operator:
+        - Assistant Gunner:
             rank: E-01 Private
             equipment:
                 - WG010001

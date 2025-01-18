@@ -1,0 +1,13 @@
+name: Panzerbrigade 18
+shortname: 18
+faction: West Germany
+toe: null # If TOE is null, the formation is not a TOE, but a custom formation
+nsns: null
+position: null
+# These only apply to custom formations, and are otherwise not needed
+sidc: '10031002180000009800'
+nation: BRD
+subunits:
+  - PzGren Battalion 182
+  - Panzer Battalion 183
+  - Panzer Battalion 184

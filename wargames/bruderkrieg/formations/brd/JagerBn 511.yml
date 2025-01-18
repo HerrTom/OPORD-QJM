@@ -1,0 +1,13 @@
+name: Jäger Battalion 511
+shortname: 512
+faction: West Germany
+toe: TOEWG000017
+nsns:
+  - G3A3
+  - MG3
+  - SPz Marder 1A2
+  - Leopard 1A1A1
+  - MILAN
+  - M113
+  - M109G
+position: null

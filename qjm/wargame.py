@@ -18,7 +18,12 @@ from .factors import (
     OPPOSITION_FACTORS,
     STRENGTH_SIZE_FACTORS,
     STRENGTH_SIZE_ARMOUR_FACTORS,
-    ADVANCE_RATE)
+    ADVANCE_RATE,
+    ADVANCE_TERRAIN,
+    ADVANCE_MINES,
+    ADVANCE_RIVER_FORDABLE,
+    ADVANCE_RIVER_UNFORDABLE,
+    SHORELINE_FACTORS)
 from .qjm_data_classes import (CasualtyRates,
                                FormationOLI,
                                VehicleCategory,
@@ -81,6 +86,7 @@ class Wargame:
         # Set the scenario date
         self.current_date = wargameRules['start_date']
         # load formations
+        custom_formations = []
         for f in glob(scenario+'/formations/**/*.yml', recursive=True):
             # Extract parameters from yaml file for better readability
             with open(f, 'r', encoding='utf-8') as g:
@@ -91,8 +97,50 @@ class Wargame:
             nsns = data.get('nsns', [])
             position = data.get('position', None)
             faction = data.get('faction', 'Unknown')
-            form = Formation(name, shortname, position, GLOBAL_TOE_DATABASE.get_TOE(toe),
-                             nsns, faction)
+            if data.get('toe') is not None:
+                form = Formation(name, shortname, position, GLOBAL_TOE_DATABASE.get_TOE(toe),
+                                nsns, faction)
+                form.add_qjm_weapons(self.equipment_database)
+                if form.faction in colors:
+                    form.color = colors[form.faction]
+                if form.faction not in self.formations:
+                    self.formations.update({form.faction: [form]})
+                else:
+                    self.formations[form.faction].append(form)
+                self.formationsByName.update({form.name: form})
+                self.formationsById.update({form.id: form})
+                # Add subunits to the formationsById dictionary
+                for subunit in form.subunits:
+                    self._add_subunits(subunit)
+            else:
+                # If formation is none, loop back to it after all other formations are loaded
+                custom_formations.append(data)
+        # Add custom formations
+        for f in custom_formations:
+            name = str(f.get('name', 'Unknown'))
+            shortname = str(f.get('shortname', '!'))
+            toe = str(f.get('toe', None))
+            nsns = f.get('nsns', [])
+            position = f.get('position', None)
+            faction = f.get('faction', 'Unknown')
+            # Generate custom formation data
+            sidc = f.get('sidc', '30031000000000000000')
+            nation = f.get('nation', 'Unknown')
+            subunit_names = f.get('subunits', [])
+            # Get the subunits by name
+            subunits = []
+            for subunit_name in subunit_names:
+                subunit = self.formationsByName.get(subunit_name)
+                if subunit is not None:
+                    subunits.append(subunit)
+                    # remove the subunit from the formations dictionary
+                    self.formations[subunit.faction].remove(subunit)
+            custom_data = {'nation': nation,
+                           'sidc': sidc,
+                           'subunits': subunits}
+            form = Formation(name, shortname, position, toe=None,
+                            nsns=None, faction=faction,
+                            custom_data=custom_data)
             form.add_qjm_weapons(self.equipment_database)
             if form.faction in colors:
                 form.color = colors[form.faction]
@@ -102,9 +150,7 @@ class Wargame:
                 self.formations[form.faction].append(form)
             self.formationsByName.update({form.name: form})
             self.formationsById.update({form.id: form})
-            # Add subunits to the formationsById dictionary
-            for subunit in form.subunits:
-                self._add_subunits(subunit)
+            # Subunits are already in the dictionary so no need to add them again
         # Load in aircraft
         aircraft = {}
         for faction in wargameRules['factions']:
@@ -435,9 +481,18 @@ class Wargame:
         su_ct = 1.0 + (su_ct-1.0) * (3-surprise_days)/3
 
 
-        # TODO Obstacle Factors
-        vr = 1.0 # TODO ADD ADDITIONAL DATA FOR SHORELINE VULNERABILITY
-        
+        # Obstacle Factors
+        shore_type = battle_input['shorelineType']
+        shore_fires = battle_input['shorelineFires']
+        print(SHORELINE_FACTORS.get_headers())
+        print(shore_type, shore_fires)
+        if shore_type == 'No shoreline' or shore_fires == 'No shoreline':
+            vra = 1.0
+        else:
+            vra = SHORELINE_FACTORS.get(shore_fires, shore_type)
+        print('Vra:', vra)
+
+        vrd = 1.0 # Defender is not vulnerable on shorelines
 
 
         # Air Superiority Factors
@@ -534,8 +589,8 @@ class Wargame:
         # Defender mobility calculation
         def_m = 1.0
 
-        atk_V = Na * uva/rua * (def_S/atk_S)**0.5 * vya * vr * Vsura
-        def_V = Nd * uvd/rud * (atk_S/def_S)**0.5 * vyd * vr * Vsurd
+        atk_V = Na * uva/rua * (def_S/atk_S)**0.5 * vya * vra * Vsura
+        def_V = Nd * uvd/rud * (atk_S/def_S)**0.5 * vyd * vrd * Vsurd
 
         if atk_V / atk_S > 0.3:
             atk_VS = 0.3 + 0.1*(atk_V/atk_S - 0.3)
@@ -590,7 +645,32 @@ class Wargame:
         else:
             # Default to hasty defense
             def_type = 'Hasty Defense'
-        adv = ADVANCE_RATE.get_advance_rate(PRatio, def_type,)
+        adv = ADVANCE_RATE.get_advance_rate(PRatio, def_type,) # Base advance rate
+        # Modify advance rates by other factors
+        adv_terrain = ADVANCE_TERRAIN.get(battle_input['terrain'])
+        adv_road_quality = float(battle_input['roadQuality'])
+        adv_road_density = float(battle_input['roadDensity'])
+        # River factors
+        if battle_input['riverObstacle'] == 'none':
+            adv_river = 1
+        else:
+            fordable, width = battle_input['riverObstacle'].split(' ')
+            if fordable == 'fordable':
+                adv_river = ADVANCE_RIVER_FORDABLE.interpolate(float(width))
+            else:
+                adv_river = ADVANCE_RIVER_UNFORDABLE.interpolate(float(width))
+        # Mine factor
+        if battle_input['mineObstacle'] == 'none':
+            adv_mine = 1
+        else:
+            adv_mine = ADVANCE_MINES.interpolate(float(battle_input['mineObstacle']))
+
+        for unit_type, rate in adv.items():
+            if unit_type in ['Armored', 'HorseCavalry']:
+                adv_terrain_factor = adv_terrain['Cavalry or Armored Force']
+            else:
+                adv_terrain_factor = adv_terrain['Infantry Force']
+            adv[unit_type] = rate * adv_terrain_factor * adv_road_quality * adv_road_density * adv_river * adv_mine
 
         # Print combat data
         print('###### COMBAT RESULTS ########\n' +

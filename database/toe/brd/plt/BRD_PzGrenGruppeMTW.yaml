@@ -1,14 +1,22 @@
-name: Panzergrenadier Gruppe (Marder) # Name of the TO&E to be used for display
+name: Panzergrenadier Gruppe (MTW) # Name of the TO&E to be used for display
 nation: BRD
 sidc: '10031000121211020000' # Single Identifier Code, used to generate the APP-6D standard symbol
-id: TOEWG000001 # ID code that can be referenced by other formations
+id: TOEWG000101 # ID code that can be referenced by other formations
 subunits: null # List of ID codes that this TO&E uses as a subunit
 personnel: # List of personnel roles and their ranks.
+    - Squad Leader:
+        rank: E-06 Sergeant
+        equipment:
+            - WG010001
     - Assistant Squad Leader:
         rank: E-03 Corporal
         equipment:
             - WG010001
     - Marksman:
+        rank: E-01 Private
+        equipment:
+            - WG010001
+    - Rifleman:
         rank: E-01 Private
         equipment:
             - WG010001
@@ -22,11 +30,7 @@ personnel: # List of personnel roles and their ranks.
             - WG010001
             - WG020001
 vehicles:  # list of equipment with crews
-    - WG030001:
-        - Squad Leader:
-            rank: E-06 Sergeant
-            equipment:
-                - WG010001
+    - WG030003:
         - Driver:
             rank: E-01 Private
             equipment:

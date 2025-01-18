@@ -5,6 +5,7 @@ import string
 import logging
 from glob import glob
 from uuid import uuid4
+import html
 
 from .enums import ElementStatus
 from .exceptions import DuplicateIDError
@@ -14,16 +15,20 @@ from qjm import FormationOLI, EquipmentOLICategory
 
 
 class Formation:
-    def __init__(self, name: str, shortname: str, parent_shortname: str, toe,
-                 nsns: list = None, faction=None):
+    def __init__(self, name: str, shortname: str, parent_shortname: str, toe=None,
+                 nsns: list=None, faction=None, custom_data=None):
         self.name = name
         self.shortname = shortname
         self.parent_shortname = parent_shortname
         self.fullshortname = f'{shortname}/{parent_shortname}/'
-        self.nation = toe.nation
-        self.sidc = toe.sidc
         self.id = str(uuid4())
         self.faction = faction
+        if toe is None:
+            self.nation = custom_data['nation']
+            self.sidc = custom_data['sidc']
+        else:
+            self.nation = toe.nation
+            self.sidc = toe.sidc
 
         # This is set when the formation is loaded into the wargame
         self.color = None
@@ -35,30 +40,33 @@ class Formation:
         self.subunits = []
         self.vehicles = []
         self.personnel = []
-        if len(toe.subunits) > 0:
-            count = 1
-            for sub in toe.subunits:
-                new_sub = self.copy_toe(str(count)+'/'+shortname, str(count), sub, nsns)
-                self.subunits.append(new_sub)
-                count += 1
+        if toe is None:
+            self.subunits = custom_data['subunits']
         else:
-            # add personnel and equipment
-            for veh in toe.vehicles:
-                new_crew = []
-                for crew in veh.crew:
-                    crewman = Personnel(crew.name, crew.rank, crew.equipment)
-                    crewman.set_status(ElementStatus.ACTIVE) # Unit is active by default
-                    crewman.assign_equipment(nsns)
-                    new_crew.append(crewman)
-                new_veh = Vehicle(veh.name, veh.equipment, new_crew)
-                new_veh.set_status(ElementStatus.ACTIVE) # Unit is active by default
-                new_veh.assign_equipment(nsns)
-                self.vehicles.append(new_veh)
-            for pers in toe.personnel:
-                new_pers = Personnel(pers.name, pers.rank, pers.equipment)
-                new_pers.set_status(ElementStatus.ACTIVE) # Unit is active by default
-                new_pers.assign_equipment(nsns)
-                self.personnel.append(new_pers)
+            if len(toe.subunits) > 0:
+                count = 1
+                for sub in toe.subunits:
+                    new_sub = self.copy_toe(str(count)+'/'+shortname, str(count), sub, nsns)
+                    self.subunits.append(new_sub)
+                    count += 1
+            else:
+                # add personnel and equipment
+                for veh in toe.vehicles:
+                    new_crew = []
+                    for crew in veh.crew:
+                        crewman = Personnel(crew.name, crew.rank, crew.equipment)
+                        crewman.set_status(ElementStatus.ACTIVE) # Unit is active by default
+                        crewman.assign_equipment(nsns)
+                        new_crew.append(crewman)
+                    new_veh = Vehicle(veh.name, veh.equipment, new_crew)
+                    new_veh.set_status(ElementStatus.ACTIVE) # Unit is active by default
+                    new_veh.assign_equipment(nsns)
+                    self.vehicles.append(new_veh)
+                for pers in toe.personnel:
+                    new_pers = Personnel(pers.name, pers.rank, pers.equipment)
+                    new_pers.set_status(ElementStatus.ACTIVE) # Unit is active by default
+                    new_pers.assign_equipment(nsns)
+                    self.personnel.append(new_pers)
 
         self.status_history = {}
 
@@ -292,20 +300,31 @@ class TOE_Database:
 
         self.build_TOE()
 
-    def build_TOE_entry(self, toe_id: str):
+    def build_TOE_entry(self, toe_id: str, visited=None, chain=None):
         """
         Build a TO&E entry by its ID.
 
         Args:
             toe_id (str): The ID of the TO&E entry to build.
         """
+        if visited is None:
+            visited = set()
+        if chain is None:
+            chain = []
+
+        if toe_id in visited:
+            raise Exception(f"Recursion detected in TO&E build. Chain: {chain + [toe_id]}")
+
+        visited.add(toe_id)
+        chain.append(toe_id)
+
         toe_entry = self.TOE[toe_id]
         if not toe_entry.is_built:
             # check if this TOE has subunits
             if toe_entry.subunit_entries is not None:
                 for subunit in toe_entry.subunit_entries:
                     # build each TOE entry if it isn't already
-                    self.build_TOE_entry(subunit)
+                    self.build_TOE_entry(subunit, visited, chain)
                     # add the TOE entries to the subunit
                     toe_entry.subunits.append(self.TOE[subunit])
             
@@ -343,6 +362,9 @@ class TOE_Database:
             logging.info('Built {}'.format(toe_entry))
             toe_entry.is_built = True
 
+        chain.pop()
+        visited.remove(toe_id)
+
     def get_TOE(self, toe_id: str):
         """
         Get a TO&E entry by its ID.
@@ -375,8 +397,7 @@ class TOE_Database:
         Build all TO&E entries in the database.
         """
         for toe in self.TOE:
-            # check if this entry is built already:
-            self.build_TOE_entry(toe)
+            self.build_TOE_entry(toe, visited=set(), chain=[])
 
     def make_unit_json(self, toe_entry, parent_json_id, group_json_id, side_json_id):
         """
@@ -487,7 +508,7 @@ class TOE_Database:
                 state.append(state_entry)
         
         unit_json = {'id': unit_json_id,
-                     'name': toe_entry.name,
+                     'name': html.escape(toe_entry.name),
                      'sidc': toe_entry.sidc,
                      'subUnits': subunits,
                      'equipment': equip,

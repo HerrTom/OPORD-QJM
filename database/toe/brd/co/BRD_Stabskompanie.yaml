@@ -1,0 +1,12 @@
+name: Stabskompanie # Name of the TO&E to be used for display
+nation: BRD
+sidc: '10031000151800009800' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEWG000011 # ID code that can be referenced by other formations
+subunits: # List of ID codes that this TO&E uses as a subunit
+    - TOEWG000016 # Kompanieführungs Zug
+    - TOEWG000012 # Reserve group, Panzer Gruppe
+    - TOEWG000014 # Fernmeldezug
+    - TOEWG000013 # Supply Platoon
+    - TOEWG000015 # Engineer platoon
+personnel: null
+vehicles: null # list of equipment with crews. This can be null. Example below:

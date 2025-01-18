@@ -1,0 +1,43 @@
+name: le. Jägergruppe # Name of the TO&E to be used for display
+nation: BRD
+sidc: '10031000121211000000' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEWG000201 # ID code that can be referenced by other formations
+subunits: null # List of ID codes that this TO&E uses as a subunit
+personnel: # List of personnel roles and their ranks.
+    - Squad Commander:
+        rank: E-06 Sergeant
+        equipment:
+            - WG010001
+    - Medic:
+        rank: E-01 Private
+        equipment:
+            - WG010001
+    - Machinegunner:
+        rank: E-01 Private
+        equipment:
+            - WG010003
+    - Rifleman:
+        rank: E-01 Private
+        equipment:
+            - WG010001
+    - AT Soldier:
+        rank: E-01 Private
+        equipment:
+            - WG010001
+            - WG020001
+    - AT Gunner:
+        rank: E-01 Private
+        equipment:
+            - WG010001
+            - WG020003
+    - AT Gunner Assistant:
+        rank: E-01 Private
+        equipment:
+            - WG010001
+
+vehicles: # list of equipment with crews
+    - WG040002:
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - WG010002

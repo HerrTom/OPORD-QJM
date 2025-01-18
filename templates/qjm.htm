@@ -71,6 +71,7 @@
           <span class="label-text text">Date:</span>
         </div>
         <input type="date" id="battle_date" class="input input-bordered w-full" value="{{ battle_date }}"/>
+        <input type="time" id="battle_time" class="input input-bordered w-full" value="08:00"/>
       </label>
       <button class="btn btn-primary w-full mb-4" disabled>Ammunition Resupply</button>
       <button class="btn btn-primary w-full mb-4" disabled>Casualty Replacement</button>
@@ -175,18 +176,18 @@
             <span class="label-text">River:</span>
           </div>
           <select class="select select-bordered" id="riverObstacle">
-            <option>No</option>
+            <option value="none">No</option>
             <optgroup label="Fordable">
-              <option>Fordable (20 m)</option>
-              <option>Fordable (50 m)</option>
-              <option>Fordable (100 m)</option>
-              <option>Fordable (500 m)</option>
+              <option value="fordable 20">Fordable (20 m)</option>
+              <option value="fordable 50">Fordable (50 m)</option>
+              <option value="fordable 100">Fordable (100 m)</option>
+              <option value="fordable 500">Fordable (500 m)</option>
             </optgroup>
             <optgroup label="Unfordable">
-              <option>Unfordable (20 m)</option>
-              <option>Unfordable (50 m)</option>
-              <option>Unfordable (100 m)</option>
-              <option>Unfordable (500 m)</option>
+              <option value="unfordable 20">Unfordable (20 m)</option>
+              <option value="unfordable 50">Unfordable (50 m)</option>
+              <option value="unfordable 100">Unfordable (100 m)</option>
+              <option value="unfordable 500">Unfordable (500 m)</option>
             </optgroup>
           </select>
         </label>
@@ -195,7 +196,7 @@
             <span class="label-text">Minefield (density/km of front):</span>
           </div>
           <select class="select select-bordered" id="mineObstacle">
-            <option>No</option>
+            <option value="none">No</option>
             <option>10</option>
             <option>20</option>
             <option>50</option>
@@ -345,7 +346,25 @@
             <span>Good</span>
           </div>
         </label>
-        <div class="w-full flex justify-between text-xs">
+        <div class="w-full flex text-xs">
+          <label class="form-control w-full max-w-md">
+            <div class="label">
+              <span class="label-text">Battle Duration:</span>
+              <span class="label-text" id="battleDurationLabel">24 hrs</span>
+            </div>
+            <input type="range" min="4" max="24" value="24" class="range" step="1" id="battleDuration" 
+            oninput="document.getElementById('battleDurationLabel').innerText = document.getElementById('battleDuration').value + ' hrs';"/>
+            <div class="w-full flex justify-between text-xs px-2">
+              <span>4 hrs</span>
+              <span>8 hrs</span>
+              <span>12 hrs</span>
+              <span>16 hrs</span>
+              <span>20 hrs</span>
+              <span>24 hrs</span>
+            </div>
+          </label>
+        </div>
+        <div class="w-full flex text-xs">
           <button class="btn btn-success m-2" onclick="sendData();battleResultsModal.showModal()">Simulate</button>
         </div>
       </div>

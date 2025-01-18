@@ -1,0 +1,12 @@
+name: Heimatschützbrigade 51
+shortname: 51
+faction: West Germany
+toe: null # If TOE is null, the formation is not a TOE, but a custom formation
+nsns: null
+position: null
+# These only apply to custom formations, and are otherwise not needed
+sidc: '10031002180000009800'
+nation: BRD
+subunits:
+  - Jäger Battalion 511
+  - Jäger Battalion 512

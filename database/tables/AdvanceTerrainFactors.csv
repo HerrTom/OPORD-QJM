@@ -1,0 +1,15 @@
+﻿Terrain,Infantry Force,Cavalry or Armored Force
+Rugged - Heavily Wooded,0.4,0.2
+Rugged - Mixed,0.5,0.4
+Rugged - Bare,0.6,0.5
+Rolling- Heavily Wooded,0.6,0.6
+Rolling - Mixed,0.8,0.8
+Rolling - Bare,1,1
+Flat - Heavily Wooded,0.7,0.7
+Flat - Mixed,0.9,0.9
+"Flat - Bare, hard",1.05,1
+Flat Desert,0.95,1
+Rolling Dunes,0.3,0.6
+Swamp - Jungled,0.3,0.2
+Swamp - mixed or open,0.4,0.3
+Urban,0.7,0.7

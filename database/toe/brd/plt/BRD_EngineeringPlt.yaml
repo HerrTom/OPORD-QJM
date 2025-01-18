@@ -1,0 +1,80 @@
+name: Engineering Platoon # Name of the TO&E to be used for display
+nation: BRD
+sidc: '10031000141407000000' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEWG000015 # ID code that can be referenced by other formations
+subunits: null # List of ID codes that this TO&E uses as a subunit
+personnel: # List of personnel roles and their ranks.
+    - Platoon Commander:
+        rank: O-01 Lieutenant
+        equipment:
+            - WG010001
+            - WG010005
+    - Deputy Platoon Commander:
+        rank: E-07 Senior Sergeant
+        equipment:
+            - WG010001
+    - Engineer:
+        rank: E-03 Corporal
+        equipment:
+            - WG010001
+    - Engineer:
+        rank: E-01 Private
+        equipment:
+            - WG010001
+    - Rifleman:
+        rank: E-01 Private
+        equipment:
+            - WG010001
+    - Machinegunner:
+        rank: E-01 Private
+        equipment:
+            - WG010003
+    - AT Soldier:
+        rank: E-01 Private
+        equipment:
+            - WG010001
+            - WG020001
+    - Squad Leader:
+        rank: E-06 Sergeant
+        equipment:
+            - WG010001
+    - Engineer:
+        rank: E-03 Corporal
+        equipment:
+            - WG010001
+    - Engineer:
+        rank: E-01 Private
+        equipment:
+            - WG010001
+    - Rifleman:
+        rank: E-01 Private
+        equipment:
+            - WG010001
+    - Machinegunner:
+        rank: E-01 Private
+        equipment:
+            - WG010003
+    - AT Soldier:
+        rank: E-01 Private
+        equipment:
+            - WG010001
+            - WG020001
+vehicles: # list of equipment with crews
+    - WG030003:
+        - Gunner:
+            rank: E-03 Corporal
+            equipment:
+                - WG010001
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - WG010005
+    - WG030003:
+        - Gunner:
+            rank: E-03 Corporal
+            equipment:
+                - WG010001
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - WG010005

@@ -1,12 +1,12 @@
-name: Panzergrenadier Battalion # Name of the TO&E to be used for display
+name: Schwere Jäger Battalion # Name of the TO&E to be used for display
 nation: BRD
 sidc: '10031000161211020000' # Single Identifier Code, used to generate the APP-6D standard symbol
-id: TOEWG000007 # ID code that can be referenced by other formations
+id: TOEWG000217 # ID code that can be referenced by other formations
 subunits: # List of ID codes that this TO&E uses as a subunit
     - TOEWG000011
-    - TOEWG000005
-    - TOEWG000005
     - TOEWG000105
-    - TOEWG000019
+    - TOEWG000105
+    - TOEWG000105
+    - TOEWG000220
 personnel: null
 vehicles: null # list of equipment with crews. This can be null. Example below:

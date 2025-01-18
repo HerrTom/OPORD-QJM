@@ -21,6 +21,13 @@ function sendData(commit=false) {
         atksurprisedays: document.getElementById('atksurprisedays').value,
         atkcev: document.getElementById('atkcev').value,
         defcev: document.getElementById('defcev').value,
+        // Obstacle info
+        roadQuality: document.getElementById('roadQuality').value,
+        roadDensity: document.getElementById('roadDensity').value,
+        riverObstacle: document.getElementById('riverObstacle').value,
+        mineObstacle: document.getElementById('mineObstacle').value,
+        shorelineFires: document.getElementById('shorelineFires').value,
+        shorelineType: document.getElementById('shorelineType').value,
         battleDate: document.getElementById('battle_date').value,
     };
 

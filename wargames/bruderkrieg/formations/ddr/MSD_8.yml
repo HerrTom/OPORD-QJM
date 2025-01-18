@@ -1,0 +1,14 @@
+name: Mot.-Schützen-Division 8
+shortname: MSD8
+faction: East Germany
+toe: null # If TOE is null, the formation is not a TOE, but a custom formation
+nsns: null
+position: null
+# These only apply to custom formations, and are otherwise not needed
+sidc: '10061002210000009800'
+nation: DDR
+subunits:
+  - Mot.-Schützen-Regiment 27
+  - Mot.-Schützen-Regiment 28
+  - Mot.-Schützen-Regiment 29
+  - Panzerregiment 8
