@@ -77,6 +77,10 @@ EG020008:
   name: Anti-Tank Guided Missile
   items:
     - 9M14M
+EG020009:
+  name: Multiple Rocket Launcher, 122mm
+  items:
+    - BM-21
 
 
 # EG03XXXX BLOCK FOR COMBAT VEHICLES
@@ -89,8 +93,8 @@ EG030001:
 EG030002:
   name: Armoured Personnel Carrier
   items:
-    - BTR-70
-    - BTR-60
+    - SPW-70
+    - SPW-60PB
 EG030003:
   name: Autoloading Tank
   items:
@@ -108,6 +112,11 @@ EG030006:
   name: Reconnaissance Vehicle, Wheeled
   items:
     - SPW 40-P2
+EG030007:
+  name: Autoloading Tank, Command
+  items:
+    - T-72K
+    - T-72K1
 
 # EG04XXXX BLOCK FOR UTILITY VEHICLES
 EG040001:
@@ -133,7 +142,7 @@ EG040005:
 EG040006:
   name: Truck (POL)
   items:
-    - Ural-375 POL
+    - Ural-375 (POL)
 EG040007:
   name: Battery Command Vehicle
   items:

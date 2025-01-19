@@ -44,7 +44,7 @@ vehicles: # list of equipment with crews.
             equipment:
                 - EG010001
         - Battery Commander:
-            rank: O-02 Captain
+            rank: O-02 First Lieutenant
             equipment:
                 - EG010001
                 - EG010007

@@ -6,7 +6,7 @@ import logging
 from qjm import EquipmentOLICategory, VehicleCategory
 
 GLOBAL_DISPERSION = 4000
-GUIDANCE_TYPES = ['radar', 'beam', 'wire', 'fire and forget']
+GUIDANCE_TYPES = ['radar', 'infrared', 'beam', 'wire', 'fire and forget']
 
 # load in interpolation arrays
 RF_CAL = []
@@ -134,6 +134,8 @@ class Weapon:
         if self.d_missile_guidance == 'wire':
             self.q_GE = 1.5
         elif self.d_missile_guidance == 'radar':
+            self.q_GE = 1.5
+        elif self.d_missile_guidance == 'infrared':
             self.q_GE = 1.5
         elif self.d_missile_guidance == 'beam':
             self.q_GE = 2.0

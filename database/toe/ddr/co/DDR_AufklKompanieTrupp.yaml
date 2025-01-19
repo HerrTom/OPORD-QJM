@@ -5,7 +5,7 @@ id: TOEEG003005 # ID code that can be referenced by other formations
 subunits: null # List of ID codes that this TO&E uses as a subunit
 personnel: # List of personnel roles and their ranks.
     - Company Commander:
-        rank: O-02 Captain
+        rank: O-02 First Lieutenant
         equipment:
             - EG010007
     - Deputy Company Commander for Political Work:

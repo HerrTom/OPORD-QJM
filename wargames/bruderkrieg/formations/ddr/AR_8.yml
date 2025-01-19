@@ -1,7 +1,7 @@
-name: Mot.-Schützen-Regiment 27
-shortname: 27
+name: Artillerieregiment 8
+shortname: 8
 faction: East Germany
-toe: TOEEG020001
+toe: TOEEG000015
 nsns:
   - MPi-KM
   - MPi-KMS

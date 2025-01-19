@@ -1,0 +1,59 @@
+name: Rocket Artillery Platoon # Name of the TO&E to be used for display
+nation: DDR
+sidc: '10061000141303004100' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEEG000019 # ID code that can be referenced by other formations
+subunits: null # List of ID codes that this TO&E uses as a subunit
+personnel: null # List of personnel roles and their ranks.
+vehicles:
+    - EG020006:
+        - Platoon Commander:
+            rank: O-01 Lieutenant
+            equipment:
+                - EG010002
+                - EG010007
+        - Gunlayer:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Loader:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010007
+    - EG020006:
+        - Gun Commander:
+            rank: E-06 Sergeant
+            equipment:
+                - EG010002
+        - Gunlayer:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Loader:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010007
+    - EG020006:
+        - Gun Commander:
+            rank: E-06 Sergeant
+            equipment:
+                - EG010002
+        - Gunlayer:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Loader:
+            rank: E-01 Private
+            equipment:
+                - EG010002
+        - Driver:
+            rank: E-01 Private
+            equipment:
+                - EG010007

@@ -1,0 +1,22 @@
+name: 9K35 Strela-10
+category: antiair # can be small arm, machine gun, heavy weapon, antitank, armour, artillery, close air support, or antiair
+crew: 3 # crew is only counted if a weapon is used directly
+calibre: 120
+rof_type: calibre # one of six options: crewed; handheld; aircraft; calibre; mortar;
+weap_type: missile # gun, mortar, missile, bomb
+barrels: 4
+ROF: 8
+PTS: 0 # if 0, use calibre calculation
+RIE: 1 # usually 1 except for small arms - 0.8 seems normal for most rifles
+eff_range: 5000
+muzzle_vel: 550
+accuracy: 0.8
+reliability: 0.8
+guidance: infrared # Guided can be none, beam, wire, command, radar
+sp_arty: enclosed # can be none, enclosed, open
+arty_charges: 0
+# ATGM only factors, can be left off
+penetration: 0
+min_range: 800
+enhancement_accuracy: 1.0 # between 1.0 and 1.3, if p(h) is higher than normal
+enhancement_other: 1.0 # between 1.0 and 1.3, ability to track through obstacles and obscurant

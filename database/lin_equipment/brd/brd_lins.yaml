@@ -41,7 +41,7 @@ WG020002:
 WG020003:
   name: Medium Antitank Rocket Launcher
   items:
-    - Carl Gustaf
+    - Carl Gustaf M2
 # WG03XXXX BLOCK FOR COMBAT VEHICLES
 WG030001:
   name: Infantry Fighting Vehicle
@@ -57,6 +57,7 @@ WG030002:
     - Leopard 1A5
     - Leopard 1A4
     - Leopard 1A3
+    - Leopard 1A1A1
     - Leopard 1A2
     - Leopard 1A1
 WG030003:

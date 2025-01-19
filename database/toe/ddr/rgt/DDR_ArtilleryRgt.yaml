@@ -1,0 +1,12 @@
+name: Artillery Regiment (Towed) # Name of the TO&E to be used for display
+nation: DDR
+sidc: '10061000171303000000' # Single Identifier Code, used to generate the APP-6D standard symbol
+id: TOEEG000015 # ID code that can be referenced by other formations
+subunits: # List of ID codes that this TO&E uses as a subunit
+    - TOEEG000016
+    - TOEEG010205
+    - TOEEG010205
+    - TOEEG000017
+    - TOEEG000012
+personnel: null # List of personnel roles and their ranks.
+vehicles: null # list of equipment with crews. This can be null. Example below:

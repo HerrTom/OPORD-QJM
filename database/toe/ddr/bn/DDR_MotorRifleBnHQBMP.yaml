@@ -5,15 +5,15 @@ id: TOEEG000006 # ID code that can be referenced by other formations
 subunits: null # List of ID codes that this TO&E uses as a subunit
 personnel: # List of personnel roles and their ranks.
     - Battalion Commander:
-        rank: O-04 Lieutenant Colonel
+        rank: O-04 Major
         equipment:
             - EG010007
     - Chief of Staff:
-        rank: O-03 Major
+        rank: O-03 Captain
         equipment:
             - EG010007
     - Deputy Company Commander for Political Work:
-        rank: O-03 Major
+        rank: O-03 Captain
         equipment:
             - EG010007
     - Battalion Clerk:
