@@ -47,9 +47,15 @@ class Formation:
             if len(toe.subunits) > 0:
                 count = 1
                 for sub in toe.subunits:
-                    new_sub = self.copy_toe(str(count)+'/'+shortname, str(count), sub, nsns)
+                    # Use sub.shortname if available, otherwise use count
+                    if hasattr(sub, 'shortname') and sub.shortname:
+                        unit_shortname = sub.shortname
+                    else:
+                        unit_shortname = str(count)
+                        count += 1
+                    new_sub = self.copy_toe(unit_shortname+'/'+shortname, unit_shortname, sub, nsns)
                     self.subunits.append(new_sub)
-                    count += 1
+                    
             else:
                 # add personnel and equipment
                 for veh in toe.vehicles:
@@ -226,7 +232,7 @@ class Formation:
 
 class TOE:
     def __init__(self, name: str, nation: str, sidc: str, toe_id: str,
-                 subunits: list, personnel: list, vehicles: list):
+                 subunits: list, personnel: list, vehicles: list, shortname: str = None):
         """
         Initialize a new TO&E (Table of Organization and Equipment).
 
@@ -238,6 +244,7 @@ class TOE:
             subunits (list): A list of subunit entries.
             personnel (list): A list of personnel entries.
             vehicles (list): A list of vehicle entries.
+            shortname (str, optional): Custom short name for the unit.
         """
         # default blank TO&E
         self.name = name
@@ -250,6 +257,7 @@ class TOE:
         self.personnel = []
         self.vehicle_entries = vehicles
         self.vehicles = []
+        self.shortname = shortname
 
         self.is_built = False
         
@@ -297,7 +305,8 @@ class TOE_Database:
                 logging.error(f"Duplicate TO&E ID found: {data['id']} in {filename}")            
                 raise DuplicateIDError(f"Duplicate TO&E ID found: {data['id']} in {filename}")
             toe_entry = TOE(data['name'], data['nation'], data['sidc'], data['id'],
-                            data['subunits'], data['personnel'], data['vehicles'])
+                            data['subunits'], data['personnel'], data['vehicles'],
+                            shortname=data.get('shortname', None))
             self.TOE.update({toe_entry.id: toe_entry})
 
         self.build_TOE()

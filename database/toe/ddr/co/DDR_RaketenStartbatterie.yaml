@@ -4,7 +4,7 @@ sidc: '10061000151307000000' # Single Identifier Code, used to generate the APP-
 id: TOEEG000021 # ID code that can be referenced by other formations
 subunits: # List of ID codes that this TO&E uses as a subunit
   - TOEEG000020
-  - TOEEG000025
-  - TOEEG000025
+  - TOEEG000019
+  - TOEEG000019
 personnel: null
 vehicles: null # list of equipment with crews. This can be null. Example below:

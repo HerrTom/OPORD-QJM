@@ -5,7 +5,7 @@ id: TOEEG000025 # ID code that can be referenced by other formations
 subunits: null # List of ID codes that this TO&E uses as a subunit
 personnel: null # List of personnel roles and their ranks.
 vehicles:
-    - EG020006:
+    - EG020009:
         - Platoon Commander:
             rank: O-01 Lieutenant
             equipment:
@@ -23,7 +23,7 @@ vehicles:
             rank: E-01 Private
             equipment:
                 - EG010007
-    - EG020006:
+    - EG020009:
         - Gun Commander:
             rank: E-06 Sergeant
             equipment:
@@ -40,7 +40,7 @@ vehicles:
             rank: E-01 Private
             equipment:
                 - EG010007
-    - EG020006:
+    - EG020009:
         - Gun Commander:
             rank: E-06 Sergeant
             equipment:

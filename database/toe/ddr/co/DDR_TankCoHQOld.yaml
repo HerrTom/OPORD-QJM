@@ -1,6 +1,7 @@
 name: Tank Company HQ (Old) # Name of the TO&E to be used for display
 nation: DDR
 sidc: '10061000141800009800' # Single Identifier Code, used to generate the APP-6D standard symbol
+shortname: HQ
 id: TOEEG001002 # ID code that can be referenced by other formations
 subunits: null # List of ID codes that this TO&E uses as a subunit
 personnel: # List of personnel roles and their ranks.
