@@ -81,6 +81,10 @@ EG020009:
   name: Multiple Rocket Launcher, 122mm
   items:
     - BM-21
+EG020010:
+  name: TEL, Tactical Missile
+  items:
+    - 9P113 Luna-M
 
 
 # EG03XXXX BLOCK FOR COMBAT VEHICLES
@@ -144,13 +148,21 @@ EG040006:
   items:
     - Ural-375 (POL)
 EG040007:
-  name: Battery Command Vehicle
+  name: Command Vehicle, Battery
   items:
     - MT-LB (BO) SFL
 EG040008:
   name: Forward Observation Vehicle
   items:
     - SPW-60PB(ABS)
+EG040009:
+  name: Command Vehicle, Missile Battery
+  items:
+    - 9S445M
+EG040010:
+  name: Ammunition Transporter, Tactical Missile
+  items:
+    - TLF 9T29
 
 # EG05XXXX BLOCK FOR ANTIAIRCRAFT WEAPONS
 EG050001:

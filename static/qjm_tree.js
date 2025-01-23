@@ -17,7 +17,7 @@ let draggable = false;
 function renderTreeList(containerId, data) {
     const container = document.getElementById(containerId);
 
-    function createNode(nodeData, parentID = 'unit-tree-container') {
+    function createNode(nodeData, parentID = 'unit-tree-container', index = 0) {
         // Create the list item for the current node
         const li = document.createElement('li');
         li.classList.add('node', 'draggable');
@@ -27,6 +27,7 @@ function renderTreeList(containerId, data) {
         // Store SIDC as a data attribute
         li.setAttribute('data-sidc', nodeData.sidc || "30031000000000000000");
         li.setAttribute('data-shortname', nodeData.shortname);
+        li.setAttribute('data-original-index', index); // Store original index
 
         // Toggle functionality to expand/collapse children
         li.addEventListener('click', (event) => {
@@ -68,8 +69,8 @@ function renderTreeList(containerId, data) {
             ul.style.display = 'none';  // Initially hide children
 
             // Recursively create child nodes
-            nodeData.children.forEach(child => {
-                ul.appendChild(createNode(child, nodeData.id));
+            nodeData.children.forEach((child, childIndex) => {
+                ul.appendChild(createNode(child, nodeData.id, childIndex));
             });
 
             li.appendChild(ul);
@@ -86,9 +87,9 @@ function renderTreeList(containerId, data) {
     const ul = document.createElement('ul');
     ul.classList.add('tree-list');
 
-    // Generate nodes for each faction
-    data.forEach(faction => {
-        ul.appendChild(createNode(faction));
+    // Generate nodes for each faction with their original index
+    data.forEach((faction, index) => {
+        ul.appendChild(createNode(faction, 'unit-tree-container', index));
     });
 
     // Append the tree to the container
@@ -110,6 +111,7 @@ function addDragEventListeners(unitDiv) {
         e.stopPropagation(); // Prevent event bubbling to parent droppables
         const droppedOnValidArea = draggable;
         const originalParentId = e.dataTransfer.getData('originalParentId');
+        const originalIndex = parseInt(unitDiv.dataset.originalIndex, 10); // Get original index from dataset
 
         if (!droppedOnValidArea) {
             console.log('Resetting unit position');
@@ -118,7 +120,30 @@ function addDragEventListeners(unitDiv) {
                 const originalParent = originalParentId === 'tree' ? document.getElementById('unit-tree-container') : document.getElementById(originalParentId);
                 const unitId = e.dataTransfer.getData('unitId');
                 const unit = document.querySelector(`[data-unit-id="${unitId}"]`);
-                if (unit && originalParent) unit.parentElement.appendChild(unit);
+                if (unit && originalParent) {
+                    let subList = originalParent.querySelector('ul');
+                    if (!subList) {
+                        subList = document.createElement('ul');
+                        originalParent.appendChild(subList);
+                    }
+                    // Insert at original index
+                    // loop through all children and check their dataset index to determine where to insert
+                    let children = subList.children;
+                    let inserted = false;
+                    for (let i = 0; i < children.length; i++) {
+                        let childIndex = parseInt(children[i].dataset.originalIndex, 10);
+                        if (childIndex > originalIndex) {
+                            subList.insertBefore(unit, children[i]);
+                            inserted = true;
+                            break;
+                        }
+                        // If we reach the end of the list, append the unit
+                        if (i === children.length - 1) {
+                            subList.appendChild(unit);
+                            inserted = true;
+                        }
+                    }
+                }
             } else {
                 console.warn('originalParentId is null. Cannot reset unit position.');
             }

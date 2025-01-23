@@ -1,0 +1,44 @@
+
+[
+{
+"id": "kUbXgQ6eQS",
+"name": "New layer",
+"features": [
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          11.254625297117757,
+          53.654939455598964
+        ],
+        [
+          10.2431443190819,
+          53.93468543680683
+        ],
+        [
+          9.299320931550113,
+          54.5416149550945
+        ]
+      ]
+    },
+    "properties": {},
+    "id": "znkV4ufDyz",
+    "style": {
+            "stroke-width": 6,
+            "stroke": "#f43f5e",
+            "showLabel": true,
+            "text-placement": "line",
+            "text-offset-x": 0,
+            "text-offset-y": 14,
+            "text-align": "center"
+          },
+    "meta": {
+      "type": "LineString",
+      "name": "BORDER OF AO"
+    }
+  }
+]
+}
+]

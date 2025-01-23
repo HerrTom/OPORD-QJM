@@ -1,0 +1,17 @@
+name: 4x Mk.83
+category: close air support # can be small arm, machine gun, heavy weapon, antitank, armour, artillery, close air support, or antiair
+crew: 0 # crew is only counted if a weapon is used directly
+calibre: 357
+rof_type: aircraft # one of six options: crewed; handheld; aircraft; calibre; mortar;
+weap_type: bomb # gun, mortar, missile, bomb
+barrels: 4
+ROF: 4
+PTS: 0 # if 0, use calibre calculation
+RIE: 1 # usually 1 except for small arms - 0.8 seems normal for most rifles
+eff_range: 0
+muzzle_vel: 280
+accuracy: 0.5
+reliability: 0.9
+guidance: none
+sp_arty: none
+arty_charges: 0

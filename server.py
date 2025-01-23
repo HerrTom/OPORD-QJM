@@ -15,7 +15,7 @@ def default_page():
 
 @app.route("/qjm/")
 def qjm_setup():  # Communicate with qjm.py to get formation data
-    return render_template('qjm.htm', battle_date=wargame.current_date.strftime('%Y-%m-%d'))
+    return render_template('qjm.htm', battle_date=wargame.current_date)
 
 
 @app.route('/load_scenario/<scenario>')

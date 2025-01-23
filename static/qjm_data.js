@@ -29,6 +29,8 @@ function sendData(commit=false) {
         shorelineFires: document.getElementById('shorelineFires').value,
         shorelineType: document.getElementById('shorelineType').value,
         battleDate: document.getElementById('battle_date').value,
+        battleTime: document.getElementById('battle_time').value,
+        battleDuration: document.getElementById('battleDuration').value,
     };
 
     // Send data to Flask server via AJAX
@@ -139,7 +141,9 @@ function exportOrbatMapper() {
       .then(result => {
         console.log('Exported to OrbatMapper:', result);
         if(result.status) {
-            alert('Successfuly exported OrbatMapper scenario.');
+            if (window.confirm('Exported OrbatMapper scenario! Click OK to open the scenario in OrbatMapper in a new tab.')) {
+                window.open('https://orbat-mapper.app/?loadScenarioURL=https%3A%2F%2Fgist.githubusercontent.com%2FHerrTom%2F937bc859c1f5f7eb69db42373eb665da%2Fraw%2FOPORD-QJM.json', '_blank');
+            };
         } else {
             alert('Failed to export OrbatMapper scenario!');
         };

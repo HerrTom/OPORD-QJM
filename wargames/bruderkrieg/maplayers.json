@@ -1,0 +1,50 @@
+[
+{
+  "opacity": 1,
+  "id": "4dlfYuZqdh",
+  "type": "ImageLayer",
+  "name": "N32-4",
+  "url": "https://maps.vlasenko.net/smtm500/n-32-4.jpg",
+  "attributions": "",
+  "imageCenter": [
+  10.497478192472165,
+  52.999285325295176
+  ],
+  "imageRotate": -0.003012501675021415,
+  "imageScale": [
+  107.29809897618948,
+  107.29809897618948
+  ],
+  "extent": [
+  987987.4299037948,
+  6784895.892666503,
+  1349160.424095196,
+  7180835.559346673
+  ],
+  "isHidden": false
+},
+{
+  "opacity": 1,
+  "id": "QizbxvAI6t",
+  "type": "ImageLayer",
+  "name": "N32-2",
+  "url": "https://maps.vlasenko.net/smtm500/n-32-2.jpg",
+  "attributions": "",
+  "imageCenter": [
+  10.480267876372459,
+  55.00893273005357
+  ],
+  "imageRotate": -0.00785056795888493,
+  "imageScale": [
+  111.42606429573061,
+  111.42606429573061
+  ],
+  "extent": [
+  985889.7028097069,
+  7158289.956542258,
+  1347426.4639400623,
+  7568909.97716317
+  ],
+  "isHidden": false
+}
+]

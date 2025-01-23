@@ -1,7 +1,7 @@
-name: Jäger Battalion 511
-shortname: 511
+name: PzArtillerie Battalion 185
+shortname: 185
 faction: West Germany
-toe: TOEWG000017
+toe: TOEWG000024
 nsns:
   - G3A3
   - MG3
@@ -10,4 +10,5 @@ nsns:
   - MILAN
   - M113G
   - M109G
+  - M113 BeobPzArt
 position: null

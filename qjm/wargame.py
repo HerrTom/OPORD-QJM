@@ -1,4 +1,5 @@
 import pickle
+import json
 import yaml
 import logging
 from glob import glob
@@ -80,6 +81,18 @@ class Wargame:
         except FileNotFoundError:
             logging.error(f'Scenario {scenario} not found')
             return False
+        self.game_name = wargameRules['name']
+        if wargameRules.get('maplayers') is not None:
+            with open(scenario+'/'+wargameRules['maplayers']) as f:
+                self.maplayers = json.load(f)
+        else:
+            self.maplayers = []
+        if wargameRules.get('layers') is not None:
+            with open(scenario+'/'+wargameRules['layers']) as f:
+                self.layers = json.load(f)
+        else:
+            self.layers = []
+
         factions = wargameRules['factions']
         colors = [factions[x]['color'] for x in factions]
         self.dispersion = wargameRules['dispersion_factor']
@@ -127,11 +140,16 @@ class Wargame:
             sidc = f.get('sidc', '30031000000000000000')
             nation = f.get('nation', 'Unknown')
             subunit_names = f.get('subunits', [])
-            # Get the subunits by name
+            # Get the subunits by name and update their parent_shortname
             subunits = []
             for subunit_name in subunit_names:
                 subunit = self.formationsByName.get(subunit_name)
                 if subunit is not None:
+                    # Update the subunit's parent shortname to this custom formation's shortname
+                    subunit.parent_shortname = shortname
+                    subunit.fullshortname = f'{subunit.shortname}/{shortname}'
+                    # Also update any nested subunits
+                    self._update_subunit_parents(subunit, subunit.shortname)
                     subunits.append(subunit)
                     # remove the subunit from the formations dictionary
                     self.formations[subunit.faction].remove(subunit)
@@ -179,6 +197,13 @@ class Wargame:
         self.formationsById.update({formation.id: formation})
         for subunit in formation.subunits:
             self._add_subunits(subunit)
+
+    def _update_subunit_parents(self, formation, parent_shortname):
+        """Recursively updates parent_shortname for all subunits."""
+        for subunit in formation.subunits:
+            subunit.parent_shortname = parent_shortname
+            subunit.fullshortname = f'{subunit.shortname}/{parent_shortname}'
+            self._update_subunit_parents(subunit, subunit.shortname)
 
     def get_formation(self, formation_id=None):
         if formation_id is not None:
@@ -248,7 +273,9 @@ class Wargame:
         units = [item for sublist in units for item in sublist]
         GLOBAL_TOE_DATABASE.to_orbatmapper(filename, units=units, 
                                            start_time=self.current_date,
-                                           name=self.scenario_name)
+                                           name=self.game_name,
+                                           maplayers=self.maplayers,
+                                           layers=self.layers)
         # Also upload the gist
         with open(filename, 'r') as f:
             content = f.read()
@@ -269,9 +296,6 @@ class Wargame:
         def_land_units = battle_input['defenders']
         def_sorties = battle_input['air_defenders']
 
-        print(atk_sorties)
-        print(def_sorties)
-
         # Get air units from the sorties
         aircraft_by_id = {}
         for fac in self.aircraft:
@@ -284,8 +308,6 @@ class Wargame:
             atk_air.append({'aircraft': aircraft_by_id[a['id']]['vehicle'], 'sorties': a['sorties']})
         for d in def_sorties:
             def_air.append({'aircraft': aircraft_by_id[d['id']]['vehicle'], 'sorties': d['sorties']})
-
-        print(atk_air, def_air)
 
         # TODO: Use battle_data in calculations
         battle_data = BattleData(
@@ -626,13 +648,19 @@ class Wargame:
         ca_arm      = STRENGTH_SIZE_ARMOUR_FACTORS.interpolate(Nia)
         # armour strength factor for casualties
         cd_arm      = STRENGTH_SIZE_ARMOUR_FACTORS.interpolate(Nid)
+        # Casualty rate factor for duration
+        c_duration = float(battle_input['battleDuration'])/24 # Scales linearly between 4 hours to 24 hours
+        if c_duration < 4/24:
+            c_duration = 4/24
+        if c_duration > 1:
+            c_duration = 1
         # TODO - factor in Attrition is 0.04, 0.028 in NPW, why?
-        ca  = 0.028 * rc * hc * uca * ca_strength * ca_power
+        ca  = 0.028 * rc * hc * uca * ca_strength * ca_power * c_duration
         cia = ca * 6.0 * ca_arm * float(battle_input['defcev'])
         cga = ca * float(battle_input['defcev'])
 
         # TODO - factor in Attrition is 0.04, 0.015 in NPW, why?
-        cd  = 0.015 * rc * hc * ucd * cd_strength * cd_power * su_c
+        cd  = 0.015 * rc * hc * ucd * cd_strength * cd_power * su_c * c_duration
         cid = cd * 3.0 * cd_arm * su_ct * float(battle_input['atkcev'])
         cgd = cd * float(battle_input['atkcev'])
 
@@ -650,6 +678,11 @@ class Wargame:
         adv_terrain = ADVANCE_TERRAIN.get(battle_input['terrain'])
         adv_road_quality = float(battle_input['roadQuality'])
         adv_road_density = float(battle_input['roadDensity'])
+        adv_duration = float(battle_input['battleDuration'])/24
+        if adv_duration < 4/24:
+            adv_duration = 4/24
+        if adv_duration > 1:
+            adv_duration = 1
         # River factors
         if battle_input['riverObstacle'] == 'none':
             adv_river = 1
@@ -670,7 +703,7 @@ class Wargame:
                 adv_terrain_factor = adv_terrain['Cavalry or Armored Force']
             else:
                 adv_terrain_factor = adv_terrain['Infantry Force']
-            adv[unit_type] = rate * adv_terrain_factor * adv_road_quality * adv_road_density * adv_river * adv_mine
+            adv[unit_type] = rate * adv_terrain_factor * adv_road_quality * adv_road_density * adv_river * adv_mine * adv_duration
 
         # Print combat data
         print('###### COMBAT RESULTS ########\n' +
@@ -838,24 +871,25 @@ class Wargame:
         with open(f"./wargames/saves/sitrep/{sitrep_file}", "a+") as file:
             file.write("\n".join(sitrep) + "\n\n")
 
-    def formation_snapshot(self, battle_date, unit_locations):
+    def formation_snapshot(self, battle_datetime, unit_locations):
         for formation in self.formationsById.values():
             # Check the unit_locations report to see if any match the formation
             location = None
-            for unit in unit_locations:
-                if unit['id'] == formation.id:
-                    location = unit['coordinates']
-                    break
-            formation.snapshot(battle_date, location)
+            formation.snapshot(battle_datetime, location)
             # Update the scenario date
-            self.current_date = datetime.datetime.fromisoformat(battle_date)
+            self.current_date = datetime.datetime.fromisoformat(battle_datetime)
+        # Add the locations afterwards to avoid a bug where the location is reset to None in subformations for some reason!
+        for unit in unit_locations:
+            formation = self.formationsById[unit['id']]
+            location = unit['coordinates']
+            formation.snapshot(battle_datetime, location)
         return True
 
-    def get_snapshots(self, battle_date):
+    def get_snapshots(self, battle_datetime):
         """Retrieve snapshots for all formations on a specific battle_date."""
         snapshots = []
         for formation in self.formationsById.values():
-            snapshot = formation.get_snapshot(battle_date)
+            snapshot = formation.get_snapshot(battle_datetime)
             if snapshot is not None:
                 if snapshot['location'] is not None:
                     snapshots.append({

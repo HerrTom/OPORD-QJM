@@ -1,0 +1,15 @@
+name: SpPz 2 Luchs
+category: heavy weapon  # can be small arm, machine gun, heavy weapon, antitank, armour, artillery, close air support, or antiair
+vehicle_type: armoured car # tank, armoured car, truck, artillery, arv, ifv, apc, cas, fighter, bomber, helicopter
+crew: 4
+weapons:
+  - MK 20 Rh 202
+  - MG3
+speed: 90 # road speed, kph
+op_range: 730 # operational range, km
+weight: 19.5
+fce: 0.7 # M-60 tank has 0.9
+ammo: 1250 # main gun
+mobility: tracked # can be tracked, wheeled, halftrack
+amphibious: no # can be no, amphibious, or snorkel
+ceiling: 0 # for aircraft, in meters

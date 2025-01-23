@@ -19,8 +19,9 @@ class Formation:
                  nsns: list=None, faction=None, custom_data=None):
         self.name = name
         self.shortname = shortname
-        self.parent_shortname = parent_shortname
-        self.fullshortname = f'{shortname}/{parent_shortname}/'
+        self.parent_shortname = parent_shortname if parent_shortname else ''
+        # Update fullshortname to include parent's shortname if it exists
+        self.fullshortname = f'{shortname}/{self.parent_shortname}' if self.parent_shortname else shortname
         self.id = str(uuid4())
         self.faction = faction
         if toe is None:
@@ -74,7 +75,8 @@ class Formation:
         return f'Formation({self.shortname}/{self.parent_shortname}, {self.nation})'
 
     def copy_toe(self, name, shortname, toe, nsns):
-        return Formation(name, shortname, self.fullshortname, toe, nsns, self.faction)
+        # Pass current formation's shortname as the parent_shortname for subunits
+        return Formation(name, shortname, self.shortname, toe, nsns, self.faction)
     
     def add_qjm_weapons(self, equipment_db):
         """ Assign QJM equipment to all personnel and vehicles in the formation. """
@@ -399,13 +401,13 @@ class TOE_Database:
         for toe in self.TOE:
             self.build_TOE_entry(toe, visited=set(), chain=[])
 
-    def make_unit_json(self, toe_entry, parent_json_id, group_json_id, side_json_id):
+    def make_unit_json(self, toe_entry, parent_shortname, group_json_id, side_json_id):
         """
         Create a JSON representation of a TO&E entry.
 
         Args:
             toe_entry (TOE): The TO&E entry to convert to JSON.
-            parent_json_id (str): The parent JSON ID.
+            parent_shortname (str): The shortname of the parent formation.
             group_json_id (str): The group JSON ID.
             side_json_id (str): The side JSON ID.
 
@@ -415,7 +417,12 @@ class TOE_Database:
         subunits = []
         unit_json_id = self.gen_id()
         for u in toe_entry.subunits:
-            subunits.append(self.make_unit_json(u, unit_json_id, group_json_id, side_json_id))
+            # Pass the current unit's shortname as the parent for its subunits
+            if isinstance(toe_entry, Formation):
+                parent = toe_entry.shortname
+            else:
+                parent = ''
+            subunits.append(self.make_unit_json(u, parent, group_json_id, side_json_id))
         # Create equipment for the unit
         equip = []
         equip_dict = {}
@@ -499,7 +506,7 @@ class TOE_Database:
                     pers_update.append({'name': pers,
                                         'onHand': st['available'],})
                 state_entry = {'id': self.gen_id(),
-                               't': t+'T12:00:00Z'}
+                               't': t + 'Z'}
                 if lat is not None:
                     state_entry.update({'location': [lon, lat],})
                 if len(eq_update) > 0 or len(pers_update) > 0:
@@ -528,7 +535,7 @@ class TOE_Database:
         return unit_json
 
     def to_orbatmapper(self, filename: str, toe_ids: list = [], units: list = [],
-                       start_time = None, name=None):
+                       start_time = None, name=None, maplayers=None, layers=None):
         """
         Export the TO&E database to an OrbatMapper JSON file.
 
@@ -560,7 +567,7 @@ class TOE_Database:
             },
             "name": name,
             "startTime": start_time.isoformat().replace('+00:00','') + 'Z',
-            "timeZone": "America/Los_Angeles",
+            "timeZone": "Europe/London",
             "description": "OPORD-QJM Export",
             "symbologyStandard": "app6",
             "sides": [],
@@ -653,6 +660,15 @@ class TOE_Database:
             sides.append(nation)
 
         orbatmapper['sides'] = sides
+
+        # Add the map layers
+        if maplayers is not None:
+            for layer in maplayers:
+                orbatmapper['mapLayers'].append(layer)
+        # Add the features
+        if layers is not None:
+            for layer in layers:
+                orbatmapper['layers'].append(layer)
 
         # write the new file
         with open(filename, 'w+') as f:

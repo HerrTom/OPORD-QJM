@@ -16,6 +16,11 @@
       padding: 10px;
       min-height: 100px;
     }
+    .source {
+      border: 2px solid #ccc;
+      padding: 10px;
+      min-height: 100px;
+    }
     .accepts-drop {
       border: 2px dashed #15803d;
     }
@@ -70,8 +75,8 @@
         <div class="label">
           <span class="label-text text">Date:</span>
         </div>
-        <input type="date" id="battle_date" class="input input-bordered w-full" value="{{ battle_date }}"/>
-        <input type="time" id="battle_time" class="input input-bordered w-full" value="08:00"/>
+        <input type="date" id="battle_date" class="input input-bordered w-full" value="{{ battle_date.strftime('%Y-%m-%d') }}"/>
+        <input type="time" id="battle_time" class="input input-bordered w-full" value="{{ battle_date.strftime('%H:%M') }}"/>
       </label>
       <button class="btn btn-primary w-full mb-4" disabled>Ammunition Resupply</button>
       <button class="btn btn-primary w-full mb-4" disabled>Casualty Replacement</button>
@@ -86,17 +91,23 @@
       <input type="radio" name="qjm_steps" role="tab" class="tab" aria-label="A. Attacking & Defending Units" checked/>
       <div role="tabpanel" class="tab-content p-10">
         <div class="container px-4 grid grid-cols-3">
-          <div id="unit-tree-container" class="droppable m-4 flex-auto">Available Units</div>
-          <div id="attackers" class="droppable m-4 flex-auto">Attackers</div>
-          <div id="defenders" class="droppable m-4 flex-auto">Defenders</div>
+          <div id="unit-tree-container" class="source m-4 flex-auto">
+            <h2 class="mb-4 text-xl font-extrabold leading-none tracking-tight pt-4">Available Units</h2>
+            </div>
+          <div id="attackers" class="droppable m-4 flex-auto">
+            <h2 class="mb-4 text-xl font-extrabold leading-none tracking-tight pt-4">Attackers</h2>
+          </div>
+          <div id="defenders" class="droppable m-4 flex-auto">
+            <h2 class="mb-4 text-xl font-extrabold leading-none tracking-tight pt-4">Defenders</h2>
+          </div>
         </div>
       </div>
 
       <input type="radio" name="qjm_steps" role="tab" class="tab" aria-label="B. Air Support Sorties" />
       <div role="tabpanel" class="tab-content p-10">
-        <h2 class="mb-4 text-2xl font-extrabold leading-none tracking-tight text-gray-900 dark:text-white pt-4">Available Aircraft</h2>
+        <h2 class="mb-4 text-2xl font-extrabold leading-none tracking-tight pt-4">Available Aircraft</h2>
         <div id="air_factions" class="factions-grid"></div>
-        <h2 class="mb-4 text-2xl font-extrabold leading-none tracking-tight text-gray-900 dark:text-white pt-4">Units in Combat</h2>
+        <h2 class="mb-4 text-2xl font-extrabold leading-none tracking-tight pt-4">Units in Combat</h2>
         <div class="container px-4 grid grid-cols-2">
           <div id="air_attackers" class="droppable m-4 flex-auto">Attackers</div>
           <div id="air_defenders" class="droppable m-4 flex-auto">Defenders</div>
@@ -105,7 +116,7 @@
 
       <input type="radio" name="qjm_steps" role="tab" class="tab" aria-label="C. Environmental Variables" />
       <div role="tabpanel" class="tab-content p-10">
-        <h2 class="mb-4 text-2xl font-extrabold leading-none tracking-tight text-gray-900 dark:text-white pt-4">Battle Environment Factors</h2>
+        <h2 class="mb-4 text-2xl font-extrabold leading-none tracking-tight pt-4">Battle Environment Factors</h2>
         <label class="form-control w-full max-w-md">
           <div class="label">
             <span class="label-text">Terrain Type:</span>
@@ -230,7 +241,7 @@
 
       <input type="radio" name="qjm_steps" role="tab" class="tab" aria-label="D. Force Variables" />
       <div role="tabpanel" class="tab-content p-10">
-        <h2 class="mb-4 text-2xl font-extrabold leading-none tracking-tight text-gray-900 dark:text-white pt-4">Force Variables</h2>
+        <h2 class="mb-4 text-2xl font-extrabold leading-none tracking-tight pt-4">Force Variables</h2>
         <label class="form-control w-full max-w-md">
           <div class="label">
             <span class="label-text">Defender Posture:</span>
@@ -374,7 +385,7 @@
         <h2 class="mb-4 text-2xl font-extrabold">Map Interface</h2>
         <div class="flex">
           <!-- Units List -->
-          <div id="map-units-list" class="m-4" style="width: 20%;">
+          <div id="map-units-list" class="m-4 source" style="width: 20%;">
             <ul class="tree-list">
             </ul>
           </div>
@@ -434,15 +445,23 @@ async function init() {
   setupDragDrop();
   // Add event listener for date change
   document.getElementById('battle_date').addEventListener('change', handleDateChange);
+  document.getElementById('battle_time').addEventListener('change', handleDateChange);
+  
+  // Add a slight delay to ensure all DOM elements are fully rendered and update the map rendering
+  setTimeout(() => {
+    map.resize();
+  }, 100);
 }
 
 function handleDateChange(event) {
-  const selectedDate = event.target.value;
-  fetch(`/get_snapshots/${selectedDate}`)
+  const selectedDate = document.getElementById('battle_date').value;
+  const selectedTime = document.getElementById('battle_time').value;
+  // Combine date and time
+  const selectedDateTime = selectedDate + 'T' + selectedTime;
+  fetch(`/get_snapshots/${selectedDateTime}`)
     .then(response => response.json())
     .then(data => {
-      // Clear existing markers
-      
+      // Clear existing markers      
       //Object.values(mapUnits).forEach(marker => marker.remove());
       //mapUnits = {};
       console.log(data);
@@ -460,7 +479,7 @@ function handleDateChange(event) {
               const markerEl = document.createElement('div');
               markerEl.dataset.unitId = formation.id;
               if (unit.sidc) {
-                const symbol = new ms.Symbol(unit.sidc, { size: 25, uniqueDesignation: unit.shortname });
+                const symbol = new ms.Symbol(unit.sidc, { size: 25, uniqueDesignation: unit.shortname});
                 const canvas = symbol.asCanvas();
                 const iconURL = canvas.toDataURL();
                 markerEl.style.backgroundImage = `url(${iconURL})`;
@@ -541,6 +560,8 @@ document.getElementById('saveChanges').addEventListener('click', () => {
 
 document.getElementById('snapshotButton').addEventListener('click', function() {
     const battleDate = document.getElementById('battle_date').value;
+    const battleTime = document.getElementById('battle_time').value;
+    const battleDateTime = battleDate + 'T' + battleTime;
     const unitLocations = captureUnitLocations();
     console.log(unitLocations);
     fetch('/snapshot', {
@@ -548,7 +569,7 @@ document.getElementById('snapshotButton').addEventListener('click', function() {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ date: battleDate, unitLocations: unitLocations })
+        body: JSON.stringify({ date: battleDateTime, unitLocations: unitLocations })
     })
     .then(response => response.json())
     .then(data => {

@@ -42,6 +42,11 @@ WG020003:
   name: Medium Antitank Rocket Launcher
   items:
     - Carl Gustaf M2
+WG020004:
+  name: Field Artillery, Towed
+  items:
+    - M113 BeobPzArt
+    - Beobachtungspanzer 22-2
 # WG03XXXX BLOCK FOR COMBAT VEHICLES
 WG030001:
   name: Infantry Fighting Vehicle
@@ -72,6 +77,18 @@ WG030005:
   name: Self-Propelled Mortar
   items:
     - Mrs 120/MTW
+WG030006:
+  name: Armored Personnel Carrier, Reconnaissance
+  items:
+    - TPz Fuchs
+WG030007:
+  name: Reconnaissance Vehicle, Wheeled
+  items:
+    - SpPz 2 Luchs
+WG030008:
+  name: Reconnaissance Vehicle, Tracked
+  items:
+    - SpPz 11-2 Kurz
 # WG04XXXX BLOCK FOR UTILITY VEHICLES
 WG040001:
   name: Light Utility Vehicle

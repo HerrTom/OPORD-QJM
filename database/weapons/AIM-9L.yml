@@ -1,18 +1,18 @@
-name: 9K32 Strela-2
+name: AIM-9L
 category: antiair # can be small arm, machine gun, heavy weapon, antitank, armour, artillery, close air support, or antiair
 crew: 1 # crew is only counted if a weapon is used directly
-calibre: 72
+calibre: 127
 rof_type: calibre # one of six options: crewed; handheld; aircraft; calibre; mortar;
 weap_type: missile # gun, mortar, missile, bomb
 barrels: 1
 ROF: 0
 PTS: 0 # if 0, use calibre calculation
 RIE: 1 # usually 1 except for small arms - 0.8 seems normal for most rifles
-eff_range: 3700
+eff_range: 8000
 muzzle_vel: 430
-accuracy: 0.7
+accuracy: 0.8
 reliability: 0.8
-guidance: wire # Guided can be none, beam, wire, command, radar
+guidance: infrared # Guided can be none, beam, wire, command, radar
 sp_arty: none # can be none, enclosed, open
 arty_charges: 0
 # ATGM only factors, can be left off

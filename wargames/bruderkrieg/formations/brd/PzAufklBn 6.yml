@@ -1,7 +1,7 @@
-name: Jäger Battalion 511
-shortname: 511
+name: Panzeraufklärungsbataillon 6
+shortname: 6
 faction: West Germany
-toe: TOEWG000017
+toe: TOEWG000034
 nsns:
   - G3A3
   - MG3
