@@ -882,6 +882,7 @@ class Wargame:
         for unit in unit_locations:
             formation = self.formationsById[unit['id']]
             location = unit['coordinates']
+            logging.debug(f"Updating location for {formation.name} to {location}")
             formation.snapshot(battle_datetime, location)
         return True
 

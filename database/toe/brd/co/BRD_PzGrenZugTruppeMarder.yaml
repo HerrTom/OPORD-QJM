@@ -7,11 +7,11 @@ personnel: # List of personnel roles and their ranks.
     - Company Commander:
         rank: O-02 First Lieutenant
         equipment:
-            - EG010001
+            - WG010001
     - Machinegunner:
         rank: E-01 Private
         equipment:
-            - EG010003
+            - WG010003
     - AT Soldier:
         rank: E-01 Private
         equipment:

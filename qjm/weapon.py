@@ -145,7 +145,7 @@ class Weapon:
             self.q_GE = 1.0
 
         # ATGM factors
-        if self.d_missile_guidance in GUIDANCE_TYPES:
+        if self.d_missile_guidance in GUIDANCE_TYPES and self.oli_category != EquipmentOLICategory.antiair:
             self.q_MRN = 1 - (0.19*(self.d_min_range-100)/100)
             if self.d_penetration > 500:
                 self.q_PEN = 1 + (.01 * np.sqrt(self.d_penetration - 500))

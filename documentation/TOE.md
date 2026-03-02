@@ -74,17 +74,15 @@ personnel: # List of personnel roles and their ranks. This can be blank. Example
         equipment: 
             - 9881056
             - 9889011
-    - Gunner-Operator:
-        rank: Private
-        equipment:
-            - 9881056
-    - Driver-Mechanic:
-        rank: Private
-        equipment:
-            - 9881057
 crews: # list of equipment with crews. This can be blank. Example below:
-    - 501001: # This is the Infantry Fighting Vehicle line item number.
-        - Gunner-Operator # Note that this matches a UNIQUE descriptor from above
-        - Driver-Mechanic # Note that this matches a UNIQUE descriptor from above
+    - 501001: # This is the Infantry Fighting Vehicle line item number.   
+      - Gunner-Operator: # Organized like above
+          rank: Private
+          equipment:
+              - 9881056
+      - Driver-Mechanic:
+          rank: Private
+          equipment:
+              - 9881057
 
 ````

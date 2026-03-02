@@ -1,5 +1,9 @@
 function sendData(commit=false) {
     // Collect data from inputs
+    // Construct the time entry
+    const selectedHour = String(document.getElementById('battle_hour').value).padStart(2, '0');
+    const selectedMinute = String(document.getElementById('battle_minute').value).padStart(2, '0');
+    const battleTime = `${selectedHour}:${selectedMinute}`;
     const data = {
         attackers: Array.from(document.querySelectorAll('#attackers .draggable')).map(el => el.dataset.unitId),
         defenders: Array.from(document.querySelectorAll('#defenders .draggable')).map(el => el.dataset.unitId),
@@ -29,7 +33,7 @@ function sendData(commit=false) {
         shorelineFires: document.getElementById('shorelineFires').value,
         shorelineType: document.getElementById('shorelineType').value,
         battleDate: document.getElementById('battle_date').value,
-        battleTime: document.getElementById('battle_time').value,
+        battleTime: battleTime,
         battleDuration: document.getElementById('battleDuration').value,
     };
 

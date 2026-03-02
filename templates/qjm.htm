@@ -76,7 +76,13 @@
           <span class="label-text text">Date:</span>
         </div>
         <input type="date" id="battle_date" class="input input-bordered w-full" value="{{ battle_date.strftime('%Y-%m-%d') }}"/>
-        <input type="time" id="battle_time" class="input input-bordered w-full" value="{{ battle_date.strftime('%H:%M') }}"/>
+        <!-- Replace battle_time input with two number inputs -->
+        <div class="flex gap-2">
+          <input type="number" id="battle_hour" class="input input-bordered w-1/2" min="0" max="23" value="{{ battle_date.strftime('%H') }}"
+            onchange="handleTime(this)" onkeyup="handleTime(this)" onclick="handleTime(this)"/>
+          <input type="number" id="battle_minute" class="input input-bordered w-1/2" min="-1" max="60" value="{{ battle_date.strftime('%M') }}"
+            onchange="handleTime(this)" onkeyup="handleTime(this)" onclick="handleTime(this)"/>
+        </div>
       </label>
       <button class="btn btn-primary w-full mb-4" disabled>Ammunition Resupply</button>
       <button class="btn btn-primary w-full mb-4" disabled>Casualty Replacement</button>
@@ -380,7 +386,7 @@
         </div>
       </div>
 
-      <input type="radio" name="qjm_steps" role="tab" class="tab" aria-label="F. Map" />
+      <input type="radio" name="qjm_steps" role="tab" class="tab" aria-label="F. Map" id="map_tab"/>
       <div role="tabpanel" class="tab-content p-10">
         <h2 class="mb-4 text-2xl font-extrabold">Map Interface</h2>
         <div class="flex">
@@ -443,9 +449,15 @@ async function init() {
   initMap();
   await initAirUnits();
   setupDragDrop();
-  // Add event listener for date change
+  // Add event listeners for date and time changes
   document.getElementById('battle_date').addEventListener('change', handleDateChange);
-  document.getElementById('battle_time').addEventListener('change', handleDateChange);
+  document.getElementById('battle_hour').addEventListener('change', handleDateChange);
+  document.getElementById('battle_minute').addEventListener('change', handleDateChange);
+  
+  // Trigger map resize when the Map tab becomes active
+  document.getElementById("map_tab").addEventListener('change', () => {
+    setTimeout(() => { map.resize(); }, 100);
+  });
   
   // Add a slight delay to ensure all DOM elements are fully rendered and update the map rendering
   setTimeout(() => {
@@ -453,11 +465,46 @@ async function init() {
   }, 100);
 }
 
+function handleTime(input) {
+  // Check if the minutes input is 60
+  const minutes = document.getElementById('battle_minute');
+  const hours = document.getElementById('battle_hour');
+  if (minutes.value === '60') {
+    minutes.value = '00';
+    if (hours.value === '23') {
+      hours.value = '00';
+    } else {
+      hours.value = String(Number(hours.value) + 1).padStart(2, '0');
+    }
+  } else if (minutes.value === '-1') {
+    minutes.value = '59';
+    if (hours.value === '00') {
+      hours.value = '23';
+    } else {
+      hours.value = String(Number(hours.value) - 1).padStart(2, '0');
+    }
+  }
+  if(!isNaN(input.value) && input.value.length === 1) {
+    input.value = '0' + input.value;
+  }
+  // Double check if the inputs have valid numbers
+  if (Number(hours.value) > 23) {
+    hours.value = '23';
+  } else if (Number(hours.value) < 0) {
+    hours.value = '00';
+  }
+  if (Number(minutes.value) > 59) {
+    minutes.value = '59';
+  } else if (Number(minutes.value) < 0) {
+    minutes.value = '00';
+  }
+}
+
 function handleDateChange(event) {
   const selectedDate = document.getElementById('battle_date').value;
-  const selectedTime = document.getElementById('battle_time').value;
-  // Combine date and time
-  const selectedDateTime = selectedDate + 'T' + selectedTime;
+  const selectedHour = String(document.getElementById('battle_hour').value).padStart(2, '0');
+  const selectedMinute = String(document.getElementById('battle_minute').value).padStart(2, '0');
+  const selectedDateTime = selectedDate + 'T' + selectedHour + ':' + selectedMinute;
   fetch(`/get_snapshots/${selectedDateTime}`)
     .then(response => response.json())
     .then(data => {
@@ -504,6 +551,43 @@ function handleDateChange(event) {
                 event.preventDefault();
                 marker.remove();
                 delete mapUnits[formation.id];
+              });
+  
+              // Add ruler update drag events
+              marker.on('dragstart', () => {
+                window.dragStart = marker.getLngLat();
+              });
+              marker.on('drag', () => {
+                const newLoc = marker.getLngLat();
+                const lineDistance = measureDistance(window.dragStart, newLoc).toFixed(1) + ' km';
+                const midLng = (window.dragStart.lng + newLoc.lng) / 2;
+                const midLat = (window.dragStart.lat + newLoc.lat) / 2;
+                map.getSource('dragLineSource').setData({
+                  type: 'FeatureCollection',
+                  features: [
+                    {
+                      type: 'Feature',
+                      geometry: {
+                        type: 'LineString',
+                        coordinates: [
+                          [window.dragStart.lng, window.dragStart.lat],
+                          [newLoc.lng, newLoc.lat]
+                        ]
+                      }
+                    },
+                    {
+                      type: 'Feature',
+                      properties: { distance: lineDistance },
+                      geometry: {
+                        type: 'Point',
+                        coordinates: [midLng, midLat]
+                      }
+                    }
+                  ]
+                });
+              });
+              marker.on('dragend', () => {
+                map.getSource('dragLineSource').setData({ type: 'FeatureCollection', features: [] });
               });
   
               mapUnits[formation.id] = marker;
@@ -560,8 +644,9 @@ document.getElementById('saveChanges').addEventListener('click', () => {
 
 document.getElementById('snapshotButton').addEventListener('click', function() {
     const battleDate = document.getElementById('battle_date').value;
-    const battleTime = document.getElementById('battle_time').value;
-    const battleDateTime = battleDate + 'T' + battleTime;
+    const battleHour = String(document.getElementById('battle_hour').value).padStart(2, '0');
+    const battleMinute = String(document.getElementById('battle_minute').value).padStart(2, '0');
+    const battleDateTime = battleDate + 'T' + battleHour + ':' + battleMinute;
     const unitLocations = captureUnitLocations();
     console.log(unitLocations);
     fetch('/snapshot', {

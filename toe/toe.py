@@ -174,7 +174,6 @@ class Formation:
             for crew in veh.crew:
                 oli += crew.get_oli()
         for pers in self.personnel:
-            logging.debug(f'{pers.name} has OLI {pers.get_oli()}')
             oli += pers.get_oli()
         if recursive:
             for sub in self.subunits:
@@ -183,6 +182,10 @@ class Formation:
 
     def snapshot(self, datecode: str, location: dict = None):
         """Capture the current status of the formation."""
+        # Preserve existing location if it already exists
+        existing = self.status_history.get(datecode, {})
+        if existing.get('location') is not None:
+            location = existing['location']
         self.status_history[datecode] = {
             'personnel': {},
             'equipment': {},
@@ -197,16 +200,17 @@ class Formation:
             if pers.status == ElementStatus.ACTIVE:
                 self.status_history[datecode]['personnel'][type_key]['available'] += 1
             # Assigned include all personnel in the unit, active or not
-            self.status_history[datecode]['personnel'][type_key]['available'] += 1
+            self.status_history[datecode]['personnel'][type_key]['assigned'] += 1
 
         # Capture equipment status
         for pers in self.personnel:
             for eq in pers.assigned_equipment:
                 if eq not in self.status_history[datecode]['equipment']:
                     self.status_history[datecode]['equipment'][eq] = {'assigned': 0, 'available': 0}
-                self.status_history[datecode]['equipment'][eq]['assigned'] += 1
+                # logging.debug(f'{pers} has status {pers.status} and equipment {eq}')
                 if pers.status == ElementStatus.ACTIVE:
                     self.status_history[datecode]['equipment'][eq]['available'] += 1
+                self.status_history[datecode]['equipment'][eq]['assigned'] += 1
         for veh in self.vehicles:
             for eq in veh.assigned_equipment:
                 if eq not in self.status_history[datecode]['equipment']:

@@ -106,16 +106,24 @@ class Vehicle:
             for i, w in enumerate(d_weaps):
                 # Special handling for aircraft, all weapons count 100%
                 if self.vehicle_type in ['cas', 'fighter', 'bomber', 'helicopter']:
-                    q_weaps += w.q_OLI
+                    q_weaps += w.q_OLI * 0.25 # Aircraft weapons are reduced to 25% of their value
                 else:
                     q_weaps += w.q_OLI * 1/(1+i)
 
 
         # mobility effect (MOF)
-        if self.vehicle_type == 'cas':
-            q_MOF = 0
-        else:
-            q_MOF = 0.15 * d_speed**0.5
+        if self.vehicle_type in ['cas', 'fighter', 'bomber']:
+            mof_speed = 500
+            if d_speed > 1500:
+                mof_speed += (1500 - d_speed) * 0.1
+                mof_speed += (d_speed - 1500) * 0.01
+            elif d_speed > 500:
+                mof_speed += (d_speed - mof_speed) * 0.1
+            else:
+                mof_speed = d_speed
+            d_speed = mof_speed
+
+        q_MOF = 0.15 * d_speed**0.5
         
         # radius of action factor (RA)
         q_RA = 0.08 * d_range**0.5
@@ -163,6 +171,8 @@ class Vehicle:
         if self.vehicle_type == 'helicopter':
             q_CL = 0.6
         elif self.vehicle_type in ['cas', 'fighter', 'bomber']:
+            # convert ceiling to feet
+            d_ceiling = d_ceiling * 3.28084
             if d_ceiling <= 30000:
                 q_CL = 1.0 - 0.02*(30000 - d_ceiling/1000)
             else:

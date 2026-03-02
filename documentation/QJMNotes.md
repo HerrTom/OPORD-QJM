@@ -63,3 +63,7 @@
     4. Enhancement factor (EN). Total value cannot exceed 1.4. There are two kinds of enhancement:
         - Accuracy enhancement (ENa): IF CEP is less than standrad ENa is >1.0 and <1.3. If ph is above standard ENa is >1.0 and <1.3
         - Other enhancement (ENo). Currently applies only to ability to track through obscurants, or other countermeasures. Value is judgemental, betwen 1.0 and 1.3.
+		
+		
+# OTHER REFERENCES
+	- [Handbook on Ground Forces Attrition in Modern Warfare](https://apps.dtic.mil/sti/tr/pdf/ADA278728.pdf)
